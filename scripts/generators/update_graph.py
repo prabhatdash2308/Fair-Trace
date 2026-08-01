@@ -1,4 +1,12 @@
-"""
+import os
+from pathlib import Path
+
+def write_file(path_str, content):
+    p = Path(path_str)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(content, encoding="utf-8")
+
+graph_content = '''"""
 Facade for the Enterprise Graph sub-system.
 """
 from typing import AsyncGenerator, Generator
@@ -47,3 +55,7 @@ class ReviewGuardGraph:
         
     async def astream(self, state: ReviewState, thread_id: str = "default") -> AsyncGenerator:
         return self.executor.astream(state, thread_id)
+'''
+
+write_file("backend/app/ai/graph/graph.py", graph_content)
+print("Updated graph.py successfully.")
