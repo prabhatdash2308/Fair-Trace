@@ -1,0 +1,1 @@
+Employee: {{employee_metadata}}\nBias Context: {{bias_findings}}\nEvidence: {{evidence}}\nAnalyze performance and return structured JSON.

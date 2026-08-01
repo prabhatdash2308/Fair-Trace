@@ -164,6 +164,17 @@ class AnalysisState(BaseModel):
     Meaning: Core analytical results based on the evidence.
     """
     strengths: List[str] = Field(default_factory=list)
+    weaknesses: List[str] = Field(default_factory=list)
+    competencies: Dict[str, float] = Field(default_factory=dict)
+    overall_score: float = Field(default=0.0)
+    confidence_score: float = Field(default=0.0)
+    reasoning: str = ""
+    supporting_citations: List[str] = Field(default_factory=list)
+    analysis_cost: float = Field(default=0.0)
+    analysis_latency_ms: int = Field(default=0)
+    status: str = "pending"
+    
+    # Legacy fields
     growth_areas: List[str] = Field(default_factory=list)
     achievements: List[str] = Field(default_factory=list)
     goal_progress: str = ""

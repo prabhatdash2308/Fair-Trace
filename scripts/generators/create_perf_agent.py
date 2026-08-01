@@ -1,4 +1,10 @@
-"""
+import os
+from pathlib import Path
+
+agent_path = Path("backend/app/ai/agents/performance_analysis_agent.py")
+agent_path.parent.mkdir(parents=True, exist_ok=True)
+
+content = '''"""
 Performance Analysis Agent for generating evidence-based competency evaluations.
 """
 import time
@@ -69,8 +75,8 @@ class PerformanceAnalysisAgent(BaseAgent):
         start_time = time.perf_counter()
         
         # 2. Gather Context
-        evidence_text = "\n".join(state.evidence.citations)
-        bias_text = "\n".join([f"[{f.bias_type.name}] {f.reason}" for f in state.bias.findings]) if hasattr(state, 'bias') and state.bias.findings else "No bias detected."
+        evidence_text = "\\n".join(state.evidence.citations)
+        bias_text = "\\n".join([f"[{f.bias_type.name}] {f.reason}" for f in state.bias.findings]) if hasattr(state, 'bias') and state.bias.findings else "No bias detected."
         employee_meta = f"Employee ID: {state.metadata.employee_id}"
         
         # 3. Render Prompts
@@ -119,3 +125,16 @@ class PerformanceAnalysisAgent(BaseAgent):
         )
         
         return state
+'''
+agent_path.write_text(content, encoding="utf-8")
+
+# Fix system/user prompts since the registry expects them
+sys_prompt = Path("backend/app/ai/prompts/system/performance_analysis.txt")
+sys_prompt.parent.mkdir(parents=True, exist_ok=True)
+sys_prompt.write_text("Enterprise performance evaluator. Evidence-first reasoning. Never hallucinate. Return STRICT JSON only.", encoding="utf-8")
+
+user_prompt = Path("backend/app/ai/prompts/user/performance_analysis.txt")
+user_prompt.parent.mkdir(parents=True, exist_ok=True)
+user_prompt.write_text("Employee: {{employee_metadata}}\\nBias Context: {{bias_findings}}\\nEvidence: {{evidence}}\\nAnalyze performance and return structured JSON.", encoding="utf-8")
+
+print("PerformanceAnalysisAgent created")
