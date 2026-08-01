@@ -1,0 +1,176 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Review-Guard-AI — Continuous Integration
+#
+# Triggers:
+#   - Push to main
+#   - Push to any feature/** branch
+#   - Pull requests targeting main
+#
+# Jobs:
+#   backend-ci  → Python 3.11 | pip | pytest (SQLite in-memory, no Postgres)
+#   frontend-ci → Node 22     | npm | tsc + vite build
+#
+# NOTE — Intentionally omitted steps (no config present in repo):
+#   Backend linting : No .flake8 / ruff.toml / pyproject.toml / .pylintrc found.
+#   Frontend tests  : No "test" script defined in frontend/package.json.
+#   Frontend linting: No .eslintrc / eslint.config.* / .prettierrc found.
+#   All omissions are documented with commented stubs for future enablement.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ── Backend ──────────────────────────────────────────────────────────────────
+  backend-ci:
+    name: "Backend — Python 3.11"
+    runs-on: ubuntu-latest
+
+    # All steps run inside the backend/ subdirectory by default.
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      # ── Required env vars ────────────────────────────────────────────────────
+      # config.py (pydantic-settings) reads these at module import time.
+      # Tests use SQLite in-memory (see tests/conftest.py) so no real Postgres
+      # or Qdrant service is required. These values are CI-safe dummies, except
+      # JWT_SECRET_KEY which is actively used by TestJWT to sign/verify tokens.
+      DATABASE_URL: "sqlite:///./ci_test.db"
+      OPENAI_API_KEY: "ci-placeholder-not-used-in-tests"
+      JWT_SECRET_KEY: "ci-test-secret-key-32-chars-minimum-padded"
+      ENVIRONMENT: "testing"
+      QDRANT_URL: "http://localhost:6333"
+
+    steps:
+      # ── 1. Checkout ─────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Python setup ─────────────────────────────────────────────────────
+      # Version 3.11 is derived from backend/Dockerfile:
+      #   FROM python:3.11-slim
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # ── 3. Dependency cache ─────────────────────────────────────────────────
+      # Cache key is the SHA-256 hash of requirements.txt.
+      # The cache is automatically invalidated whenever dependencies change.
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # ── 4. Install dependencies ─────────────────────────────────────────────
+      # requirements.txt contains both production and test dependencies
+      # (pytest 8.3.3, pytest-asyncio 0.24.0, pytest-cov 5.0.0, httpx 0.27.2).
+      # A single install step covers everything.
+      - name: Install Python dependencies
+        run: pip install --no-cache-dir -r requirements.txt
+
+      # ── 5. Linting — SKIPPED ────────────────────────────────────────────────
+      # No linting tool is configured in this repository.
+      # Checked: .flake8, pyproject.toml, ruff.toml, .ruff.toml, setup.cfg,
+      #          .pylintrc — none found. Adding lint would require inventing
+      #          configuration that does not exist in the codebase.
+      #
+      # To enable in future: add a ruff.toml (or pyproject.toml [tool.ruff])
+      # and uncomment the step below.
+      #
+      # - name: Lint with ruff
+      #   run: ruff check .
+
+      # ── 6. Run tests ─────────────────────────────────────────────────────────
+      # pytest.ini configures all flags automatically:
+      #   testpaths      = tests
+      #   asyncio_mode   = auto
+      #   addopts        = -v --tb=short --cov=. --cov-report=term-missing
+      #                    --cov-omit=migrations/*,tests/*,seed.py
+      #
+      # tests/conftest.py overrides the DB session with SQLite in-memory,
+      # so no Postgres or Qdrant services are needed in CI.
+      - name: Run tests with pytest
+        run: pytest
+
+  # ── Frontend ─────────────────────────────────────────────────────────────────
+  frontend-ci:
+    name: "Frontend — Node 22"
+    runs-on: ubuntu-latest
+
+    # All steps run inside the frontend/ subdirectory by default.
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      # ── 1. Checkout ─────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Node.js setup ────────────────────────────────────────────────────
+      # Node version requirement is derived from frontend/package-lock.json:
+      #   node_modules/vite → engines: "^20.19.0 || >=22.12.0"
+      # Node 22 (current LTS) satisfies both branches of the constraint.
+      # setup-node@v4 with cache: "npm" handles dependency caching using
+      # package-lock.json as the cache key — no separate cache step needed.
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      # ── 3. Install dependencies ─────────────────────────────────────────────
+      # `npm ci` is used instead of `npm install` because:
+      #   - It installs exactly what is in package-lock.json (lockfileVersion 3)
+      #   - It fails if package-lock.json is out of sync with package.json
+      #   - It is faster and more reproducible in CI environments
+      - name: Install npm dependencies
+        run: npm ci
+
+      # ── 4. Build frontend ───────────────────────────────────────────────────
+      # Runs the "build" script from package.json: tsc && vite build
+      # This performs two checks in sequence:
+      #   1. TypeScript type-checking (tsconfig.json — strict mode, noEmit: true)
+      #   2. Vite production bundle (outputs to frontend/dist/)
+      # The job fails immediately on any type error or build error.
+      - name: Build frontend
+        run: npm run build
+
+      # ── 5. Frontend tests — SKIPPED ─────────────────────────────────────────
+      # No "test" script is defined in frontend/package.json.
+      # Available scripts are: dev, build, preview (only).
+      # No test framework (vitest, jest) is installed or configured.
+      # Running `npm test` would exit with an npm error.
+      #
+      # To enable in future: install vitest, add "test": "vitest run" to
+      # package.json scripts, and uncomment the step below.
+      #
+      # - name: Run frontend tests
+      #   run: npm test
+
+      # ── 6. Frontend linting — SKIPPED ───────────────────────────────────────
+      # No linting configuration exists in the frontend.
+      # Checked: .eslintrc.*, eslint.config.*, .prettierrc.*, prettier.config.*
+      # — none found. TypeScript strict mode (tsconfig.json) provides
+      # static analysis coverage during the build step above.
+      #
+      # To enable in future: install eslint + @typescript-eslint/eslint-plugin,
+      # add an eslint.config.js, and uncomment the step below.
+      #
+      # - name: Lint with ESLint
+      #   run: npx eslint src
