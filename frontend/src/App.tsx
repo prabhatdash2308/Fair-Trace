@@ -12,8 +12,9 @@ import EmployeeDetailsPage    from '@/pages/EmployeeDetailsPage';
 import PipelinePage           from '@/pages/PipelinePage';
 import PipelineHistoryPage    from '@/pages/PipelineHistoryPage';
 import PipelineRunPage        from '@/pages/PipelineRunPage';
+import ReviewsPage            from '@/pages/ReviewsPage';
+import ReviewDetailsPage      from '@/pages/ReviewDetailsPage';
 import { AIInsights }         from '@/pages/AIInsights';
-import { ReviewCycles }       from '@/pages/ReviewCycles';
 import { Reports }            from '@/pages/Reports';
 import { Settings }           from '@/pages/Settings';
 import { Login }              from '@/pages/Login';
@@ -47,7 +48,8 @@ function App() {
           <Route path={ROUTES.PIPELINE}         element={<PipelinePage />} />
           <Route path={ROUTES.PIPELINE_HISTORY} element={<PipelineHistoryPage />} />
           <Route path={ROUTES.PIPELINE_MONITOR} element={<PipelineRunPage />} />
-          <Route path={ROUTES.REVIEWS}          element={<ReviewCycles />} />
+          <Route path={ROUTES.REVIEWS}          element={<ReviewsPage />} />
+          <Route path={ROUTES.REVIEW_DETAIL}    element={<ReviewDetailsPage />} />
           <Route path={ROUTES.INSIGHTS}         element={<AIInsights />} />
           <Route path={ROUTES.REPORTS}          element={<Reports />} />
           <Route path={ROUTES.SETTINGS}         element={<Settings />} />
