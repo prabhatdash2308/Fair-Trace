@@ -1,0 +1,1 @@
+Employee: {{employee_metadata}}\nAnalysis: {{analysis_result}}\nBias Context: {{bias_findings}}\nCitations: {{supporting_citations}}\nProvide the explainability trace.

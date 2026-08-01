@@ -1,4 +1,10 @@
-"""
+import os
+from pathlib import Path
+
+agent_path = Path("backend/app/ai/agents/explainability_agent.py")
+agent_path.parent.mkdir(parents=True, exist_ok=True)
+
+content = '''"""
 Explainability Agent for generating transparent reasoning traces.
 """
 import time
@@ -71,8 +77,8 @@ class ExplainabilityAgent(BaseAgent):
         # 2. Gather Context
         employee_meta = f"Employee ID: {state.metadata.employee_id}"
         analysis_res = str(state.analysis.model_dump())
-        bias_res = "\n".join([f"[{f.bias_type.name}] {f.reason}" for f in state.bias.findings]) if hasattr(state, 'bias') and state.bias.findings else "No bias detected."
-        citations = "\n".join(state.analysis.supporting_citations)
+        bias_res = "\\n".join([f"[{f.bias_type.name}] {f.reason}" for f in state.bias.findings]) if hasattr(state, 'bias') and state.bias.findings else "No bias detected."
+        citations = "\\n".join(state.analysis.supporting_citations)
         
         # 3. Render Prompts
         sys_prompt, user_prompt = self.prompt_registry.render_prompt(
@@ -117,3 +123,16 @@ class ExplainabilityAgent(BaseAgent):
         )
         
         return state
+'''
+agent_path.write_text(content, encoding="utf-8")
+
+# Prompts
+sys_prompt = Path("backend/app/ai/prompts/system/explainability.txt")
+sys_prompt.parent.mkdir(parents=True, exist_ok=True)
+sys_prompt.write_text("Enterprise AI Explainability Specialist. Explain every conclusion using only supplied evidence. Never generate new evidence. Never change previous conclusions. Return STRICT JSON.", encoding="utf-8")
+
+user_prompt = Path("backend/app/ai/prompts/user/explainability.txt")
+user_prompt.parent.mkdir(parents=True, exist_ok=True)
+user_prompt.write_text("Employee: {{employee_metadata}}\\nAnalysis: {{analysis_result}}\\nBias Context: {{bias_findings}}\\nCitations: {{supporting_citations}}\\nProvide the explainability trace.", encoding="utf-8")
+
+print("ExplainabilityAgent created")

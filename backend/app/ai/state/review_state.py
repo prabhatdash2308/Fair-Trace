@@ -204,6 +204,31 @@ class ApprovalState(BaseModel):
     approved_at: Optional[datetime] = None
     reviewer_comments: str = ""
 
+class ExplainabilityState(BaseModel):
+    """
+    Owned by: Explainability Agent
+    Purpose: Provides clear reasoning for how the AI reached its conclusions.
+    Meaning: Transparency and auditability.
+    """
+    executive_summary: str = ""
+    decision_path: List[str] = Field(default_factory=list)
+    competency_explanations: Dict[str, str] = Field(default_factory=dict)
+    bias_explanations: List[str] = Field(default_factory=list)
+    confidence_explanation: str = ""
+    citation_mapping: Dict[str, List[str]] = Field(default_factory=dict)
+    limitations: List[str] = Field(default_factory=list)
+    explainability_cost: float = Field(default=0.0)
+    explainability_latency_ms: int = Field(default=0)
+    status: str = "pending"
+    
+    # Legacy fields
+    step_explanations: Dict[str, str] = Field(default_factory=dict)
+    confidence_factors: List[str] = Field(default_factory=list)
+    missing_context: List[str] = Field(default_factory=list)
+    latency_ms: int = Field(default=0, ge=0)
+    token_usage: int = Field(default=0, ge=0)
+    estimated_cost: float = Field(default=0.0, ge=0.0)
+
 class AuditState(BaseModel):
     """
     Owned by: Audit Agent
@@ -242,6 +267,7 @@ class ReviewState(BaseModel):
     analysis: AnalysisState = Field(default_factory=AnalysisState)
     report: ReportState = Field(default_factory=ReportState)
     approval: ApprovalState = Field(default_factory=ApprovalState)
+    explainability: ExplainabilityState = Field(default_factory=ExplainabilityState)
     audit: AuditState = Field(default_factory=AuditState)
     execution: ExecutionState = Field(default_factory=ExecutionState)
 
