@@ -1,0 +1,65 @@
+/* ── Custom Keyframe Animations ─────────────────────────────────────── */
+/* Framer Motion handles component animations.                           */
+/* This file contains pure CSS animations used via Tailwind utilities.   */
+
+@layer utilities {
+  /* Skeleton pulse — used in LoadingState */
+  @keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+
+  /* Spinner — used in buttons and loading indicators */
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* Shimmer — used in skeleton loaders */
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Slide up — page entrance fallback without Framer Motion */
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Fade in */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* Scale in — used for modals and popovers */
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Pulse ring — used for live status indicators */
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 rgb(37 99 235 / 0.4); }
+    70%  { box-shadow: 0 0 0 8px rgb(37 99 235 / 0); }
+    100% { box-shadow: 0 0 0 0 rgb(37 99 235 / 0); }
+  }
+
+  /* Utility classes */
+  .animate-slide-up    { animation: slide-up 0.25s ease forwards; }
+  .animate-fade-in     { animation: fade-in 0.2s ease forwards; }
+  .animate-scale-in    { animation: scale-in 0.2s ease forwards; }
+  .animate-pulse-ring  { animation: pulse-ring 1.8s infinite; }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 25%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
