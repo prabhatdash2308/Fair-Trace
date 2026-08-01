@@ -73,6 +73,20 @@ export default {
         '2xl':'calc(var(--radius) + 8px)',
       },
 
+      // ── Spacing ───────────────────────────────────────────────────────
+      spacing: {
+        '32': '8rem',
+        '40': '10rem',
+        '48': '12rem',
+        '64': '16rem',
+      },
+
+      // ── Shadows ───────────────────────────────────────────────────────
+      boxShadow: {
+        floating: '0 0 0 1px rgba(0,0,0,0.05), 0 8px 20px -4px rgba(0,0,0,0.1)',
+        glass: '0 4px 30px rgba(0, 0, 0, 0.1)',
+      },
+
       // ── Typography — Geist ────────────────────────────────────────────
       fontFamily: {
         sans: ['Geist', 'Inter', 'system-ui', 'sans-serif'],

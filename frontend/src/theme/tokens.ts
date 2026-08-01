@@ -17,6 +17,10 @@ export const tokens = {
     '16': '4rem',
     '20': '5rem',
     '24': '6rem',
+    '32': '8rem',
+    '40': '10rem',
+    '48': '12rem',
+    '64': '16rem',
   },
 
   shadow: {
@@ -25,6 +29,8 @@ export const tokens = {
     lg:  '0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05)',
     xl:  '0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04)',
     '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.18)',
+    floating: '0 0 0 1px rgba(0,0,0,0.05), 0 8px 20px -4px rgba(0,0,0,0.1)',
+    glass: '0 4px 30px rgba(0, 0, 0, 0.1)',
   },
 
   zIndex: {
@@ -46,4 +52,10 @@ export const tokens = {
     '2xl':'1.5rem',
     full: '9999px',
   },
+
+  transition: {
+    default: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    fast: 'all 0.1s cubic-bezier(0.4, 0, 0.2, 1)',
+    slow: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  }
 } as const;

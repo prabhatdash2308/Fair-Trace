@@ -23,6 +23,7 @@ export const ROUTES = {
 
   // AI Pipeline
   PIPELINE: '/pipeline',
+  PIPELINE_HISTORY: '/pipeline/history',
   PIPELINE_MONITOR: '/pipeline/:runId',
   pipelineMonitor: (runId: string) => `/pipeline/${runId}`,
 

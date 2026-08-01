@@ -1,0 +1,35 @@
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Save,
+  X,
+  Check,
+  MoreVertical,
+  MoreHorizontal,
+  RefreshCw,
+  Filter,
+  ArrowRight,
+  ArrowLeft,
+  Play,
+  Pause,
+  StopCircle
+} from 'lucide-react';
+
+export const ActionIcons = {
+  Add: Plus,
+  Edit: Edit2,
+  Delete: Trash2,
+  Save,
+  Cancel: X,
+  Confirm: Check,
+  MoreVertical,
+  MoreHorizontal,
+  Refresh: RefreshCw,
+  Filter,
+  ArrowRight,
+  ArrowLeft,
+  Play,
+  Pause,
+  Stop: StopCircle,
+} as const;

@@ -7,8 +7,11 @@ import { ROUTES } from '@/constants/routes';
 // ── Pages (existing — preserved as-is) ───────────────────────────────
 import { LandingPage }        from '@/pages/LandingPage';
 import { Dashboard }          from '@/pages/Dashboard';
-import { Employees }          from '@/pages/Employees';
-import { EmployeeProfile }    from '@/pages/EmployeeProfile';
+import EmployeesPage          from '@/pages/EmployeesPage';
+import EmployeeDetailsPage    from '@/pages/EmployeeDetailsPage';
+import PipelinePage           from '@/pages/PipelinePage';
+import PipelineHistoryPage    from '@/pages/PipelineHistoryPage';
+import PipelineRunPage        from '@/pages/PipelineRunPage';
 import { AIInsights }         from '@/pages/AIInsights';
 import { ReviewCycles }       from '@/pages/ReviewCycles';
 import { Reports }            from '@/pages/Reports';
@@ -39,8 +42,11 @@ function App() {
           }
         >
           <Route path={ROUTES.DASHBOARD}        element={<Dashboard />} />
-          <Route path={ROUTES.EMPLOYEES}        element={<Employees />} />
-          <Route path={ROUTES.EMPLOYEE_PROFILE} element={<EmployeeProfile />} />
+          <Route path={ROUTES.EMPLOYEES}        element={<EmployeesPage />} />
+          <Route path={ROUTES.EMPLOYEE_PROFILE} element={<EmployeeDetailsPage />} />
+          <Route path={ROUTES.PIPELINE}         element={<PipelinePage />} />
+          <Route path={ROUTES.PIPELINE_HISTORY} element={<PipelineHistoryPage />} />
+          <Route path={ROUTES.PIPELINE_MONITOR} element={<PipelineRunPage />} />
           <Route path={ROUTES.REVIEWS}          element={<ReviewCycles />} />
           <Route path={ROUTES.INSIGHTS}         element={<AIInsights />} />
           <Route path={ROUTES.REPORTS}          element={<Reports />} />
