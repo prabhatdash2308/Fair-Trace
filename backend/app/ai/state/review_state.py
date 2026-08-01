@@ -132,12 +132,24 @@ class EvidenceState(BaseModel):
     evidence_strength: float = Field(default=0.0, ge=0.0, le=100.0)
     supporting_sources: List[str] = Field(default_factory=list)
 
+class BiasFinding(BaseModel):
+    bias_type: BiasType
+    severity: BiasSeverity
+    confidence: float
+    reason: str
+    recommendation: str
+    supporting_citations: List[str]
+
 class BiasState(BaseModel):
     """
     Owned by: Bias Detection Agent
     Purpose: Tracks detected biases and mitigation recommendations.
     Meaning: Ensures fairness by flagging problematic language or unsupported claims.
     """
+    findings: List[BiasFinding] = Field(default_factory=list)
+    status: str = "pending"
+    
+    # Legacy fields
     bias_flags: List[str] = Field(default_factory=list)
     bias_types: List[BiasType] = Field(default_factory=list)
     bias_score: float = Field(default=0.0, ge=0.0, le=100.0)

@@ -1,2 +1,1 @@
-Employee: {{employee_name}}
-Feedback: {{manager_feedback}}
+Evidence:\n{{evidence}}\nEvaluate this for bias.

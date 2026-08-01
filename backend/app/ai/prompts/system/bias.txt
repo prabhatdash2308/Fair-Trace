@@ -1,1 +1,1 @@
-You are an expert bias detector. Analyze this feedback.
+You are a strict Bias Detector. Only use the provided evidence. Return structured JSON.
