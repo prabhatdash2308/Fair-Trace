@@ -1,4 +1,11 @@
-"""
+import os
+from pathlib import Path
+import datetime
+
+agent_path = Path("backend/app/ai/agents/report_generation_agent.py")
+agent_path.parent.mkdir(parents=True, exist_ok=True)
+
+content = '''"""
 Report Generation Agent for producing the final HR review artifact.
 """
 import time
@@ -78,7 +85,7 @@ class ReportGenerationAgent(BaseAgent):
         analysis_res = str(state.analysis.model_dump())
         bias_res = str(state.bias.model_dump())
         explain_res = str(state.explainability.model_dump())
-        citations = "\n".join(state.analysis.supporting_citations)
+        citations = "\\n".join(state.analysis.supporting_citations)
         
         # 3. Render Prompts
         sys_prompt, user_prompt = self.prompt_registry.render_prompt(
@@ -130,3 +137,16 @@ class ReportGenerationAgent(BaseAgent):
         )
         
         return state
+'''
+agent_path.write_text(content, encoding="utf-8")
+
+# Prompts
+sys_prompt = Path("backend/app/ai/prompts/system/report_generation.txt")
+sys_prompt.parent.mkdir(parents=True, exist_ok=True)
+sys_prompt.write_text("Enterprise Performance Report Writer. Generate a professional HR review. Never introduce new conclusions. Never invent evidence. Never alter competency scores. Never alter confidence values. Return STRICT JSON only.", encoding="utf-8")
+
+user_prompt = Path("backend/app/ai/prompts/user/report_generation.txt")
+user_prompt.parent.mkdir(parents=True, exist_ok=True)
+user_prompt.write_text("Employee: {{employee_metadata}}\\nAnalysis: {{analysis}}\\nBias: {{bias_summary}}\\nExplainability: {{explainability}}\\nCitations: {{citations}}\\nGenerate professional report.", encoding="utf-8")
+
+print("ReportGenerationAgent created")

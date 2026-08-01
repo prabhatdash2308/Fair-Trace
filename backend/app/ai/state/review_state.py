@@ -187,7 +187,25 @@ class ReportState(BaseModel):
     Purpose: The final output artifacts to be presented to the user.
     Meaning: Drafts and final versions of the performance review documents.
     """
+    report_title: str = ""
     executive_summary: str = ""
+    employee_overview: str = ""
+    performance_summary: str = ""
+    strengths: List[str] = Field(default_factory=list)
+    areas_for_improvement: List[str] = Field(default_factory=list)
+    competency_breakdown: Dict[str, float] = Field(default_factory=dict)
+    bias_summary: str = ""
+    confidence_summary: str = ""
+    recommendations: List[str] = Field(default_factory=list)
+    supporting_citations: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    report_version: int = 1
+    generated_at: Optional[str] = None
+    report_cost: float = Field(default=0.0)
+    report_latency_ms: int = Field(default=0)
+    status: str = "pending"
+
+    # Legacy fields
     employee_summary: str = ""
     manager_summary: str = ""
     final_report: str = ""

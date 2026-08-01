@@ -1,0 +1,1 @@
+Employee: {{employee_metadata}}\nAnalysis: {{analysis}}\nBias: {{bias_summary}}\nExplainability: {{explainability}}\nCitations: {{citations}}\nGenerate professional report.
