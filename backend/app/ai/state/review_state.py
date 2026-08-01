@@ -95,6 +95,17 @@ class RetrievalState(BaseModel):
     Purpose: Stores state related to vector search and RAG operations.
     Meaning: Keeps track of what was searched and what was found.
     """
+    # Embedding Agent Fields
+    embedded_documents: List[str] = Field(default_factory=list)
+    total_chunks: int = Field(default=0, ge=0)
+    vector_ids: List[str] = Field(default_factory=list)
+    collection_name: Optional[str] = None
+    embedding_dimension: Optional[int] = None
+    embedding_cost: float = Field(default=0.0, ge=0.0)
+    embedding_latency: int = Field(default=0, ge=0)
+    status: str = "pending"
+    
+    # Evidence Retrieval Agent Fields
     retrieval_queries: List[str] = Field(default_factory=list)
     retrieved_chunks: List[str] = Field(default_factory=list)
     retrieval_scores: List[float] = Field(default_factory=list)
