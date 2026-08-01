@@ -1,149 +1,149 @@
 """
-ReviewGuard AI — Agent 3: Evidence Retrieval Agent
-Performs semantic search for all 5 performance dimensions.
-P1 gate: sets evidence_ready=False if no evidence found. SLO: < 3 seconds.
+Evidence Retrieval Agent for deterministic vector search and retrieval.
 """
+import time
+from typing import List, Dict, Any
 
-import uuid
-from datetime import datetime, timezone
+from app.ai.base.base_agent import BaseAgent
+from app.ai.base.execution_context import ExecutionContext
+from app.ai.state.review_state import ReviewState
+from app.ai.base.exceptions import StateValidationError
 
-import structlog
+from app.ai.services.embeddings import EmbeddingService, EmbeddingRequest
+from app.ai.services.vector_store import VectorStoreService, VectorSearchRequest, SearchMatch
 
-from app.ai.state.review_state import ReviewGuardState, EvidenceCitationState
-from config import settings
-from app.ai.services.llm_service import embed_single
-from app.ai.services.qdrant_service import search_by_cycle
-
-logger = structlog.get_logger(__name__)
-
-# Canonical dimension queries — do not modify without PR review
-DIMENSION_QUERIES: dict[str, list[str]] = {
-    "TECHNICAL": [
-        "technical skills code quality engineering system design technical delivery software development"
-    ],
-    "COLLABORATION": [
-        "collaboration teamwork communication cross-functional helping others knowledge sharing"
-    ],
-    "LEADERSHIP": [
-        "leadership mentoring decision making initiative ownership driving outcomes"
-    ],
-    "DELIVERY": [
-        "delivery deadlines project completion results execution on-time delivery milestones"
-    ],
-    "GROWTH": [
-        "learning growth improvement feedback development new skills professional development"
-    ],
-}
-
-
-def evidence_retrieval_node(state: ReviewGuardState) -> dict:
+class EvidenceRetrievalAgent(BaseAgent):
     """
-    Evidence Retrieval Agent Node.
-    Queries Qdrant for each dimension and builds the evidence index.
-    Sets evidence_ready=False if no passages retrieved above threshold (P1 enforcement).
+    EvidenceRetrievalAgent executes semantic searches against the Vector Store
+    to retrieve grounded evidence for downstream agents.
     """
-    agent_name = "evidence_retrieval_agent"
-    start_time = datetime.now(timezone.utc)
-    logger.info("agent_started", agent=agent_name, correlation_id=state["correlation_id"])
+    def __init__(
+        self, 
+        embedding_service: EmbeddingService,
+        vector_store_service: VectorStoreService,
+        name: str = "EvidenceRetrievalAgent", 
+        max_retries: int = 3
+    ):
+        super().__init__(name=name, max_retries=max_retries)
+        self.embedding_service = embedding_service
+        self.vector_store_service = vector_store_service
+        
+    def _validate_before_process(self, state: ReviewState) -> None:
+        if not state.metadata.employee_id:
+            raise StateValidationError("Missing employee_id in ReviewState.")
+        if not state.metadata.review_cycle_id:
+            raise StateValidationError("Missing review_cycle_id in ReviewState.")
+            
+    def _generate_queries(self, state: ReviewState) -> List[str]:
+        """
+        Generate static/semantic queries for deterministic retrieval.
+        No LLM is used.
+        """
+        return [
+            "Performance achievements, goals, and positive feedback",
+            "Areas for improvement, growth, and critical feedback",
+            "Peer and manager evaluations regarding behavior and outcomes"
+        ]
 
-    try:
-        evidence_index: list[EvidenceCitationState] = []
-        evidence_by_dimension: dict[str, list[EvidenceCitationState]] = {}
-        low_evidence_dimensions: list[str] = []
-
-        for dimension, queries in DIMENSION_QUERIES.items():
-            dimension_citations: list[EvidenceCitationState] = []
-
-            for query_text in queries:
-                query_vector = embed_single(query_text)
-                results = search_by_cycle(
-                    query_vector=query_vector,
-                    review_cycle_id=state["review_cycle_id"],
-                    top_k=settings.max_evidence_chunks,
-                    score_threshold=settings.similarity_threshold,
-                )
-
-                for rank, result in enumerate(results):
-                    citation = EvidenceCitationState(
-                        citation_id=str(uuid.uuid4()),
-                        source_input_id=result["payload"].get("review_input_id", ""),
-                        source_input_type=result["payload"].get("input_type", ""),
-                        extracted_passage=result["payload"].get("chunk_text", ""),
-                        similarity_score=round(result["score"], 4),
-                        retrieval_rank=rank + 1,
-                        query_dimension=dimension,
-                    )
-                    dimension_citations.append(citation)
-
-            if len(dimension_citations) < 2:
-                low_evidence_dimensions.append(dimension)
-
-            evidence_by_dimension[dimension] = dimension_citations
-            evidence_index.extend(dimension_citations)
-
-        evidence_ready = len(evidence_index) > 0
-
-        end_time = datetime.now(timezone.utc)
-        record = _build_record(
-            agent_name, start_time, end_time,
-            "SUCCESS" if evidence_ready else "FAILURE",
-            f"Retrieved {len(evidence_index)} citations across {len(DIMENSION_QUERIES)} dimensions.",
-            error_message=None if evidence_ready else "No evidence retrieved above similarity threshold.",
-            items_processed=len(evidence_index),
-        )
-
-        logger.info(
-            "agent_completed", agent=agent_name,
-            citations=len(evidence_index), evidence_ready=evidence_ready,
-            correlation_id=state["correlation_id"],
-        )
-
-        result = {
-            "evidence_index": evidence_index,
-            "evidence_by_dimension": evidence_by_dimension,
-            "evidence_ready": evidence_ready,
-            "low_evidence_dimensions": low_evidence_dimensions,
-            "state_version": state["state_version"] + 1,
-            "current_agent": agent_name,
-            "agent_executions": [record],
+    def _process(self, state: ReviewState, context: ExecutionContext) -> ReviewState:
+        # 1. Validation
+        self._validate_before_process(state)
+        state.evidence.status = "processing"
+        
+        start_time = time.perf_counter()
+        
+        # Ensure collection exists
+        if not self.vector_store_service.collection_exists():
+            state.audit.warnings.append(f"[{self.name}] Collection does not exist. Skipping retrieval.")
+            state.evidence.status = "completed"
+            return state
+            
+        queries = self._generate_queries(state)
+        all_matches: List[SearchMatch] = []
+        total_cost = 0.0
+        
+        # Set up filters
+        metadata_filter = {
+            "employee_id": str(state.metadata.employee_id),
+            "review_cycle_id": str(state.metadata.review_cycle_id)
         }
-
-        if not evidence_ready:
-            result["pipeline_status"] = "FAILED"
-            result["error_state"] = {
-                "agent": agent_name,
-                "error": "No evidence retrieved above similarity threshold 0.60.",
-                "timestamp": end_time.isoformat(),
-            }
-
-        return result
-
-    except Exception as exc:
-        logger.exception("agent_failed", agent=agent_name, error=str(exc))
-        end_time = datetime.now(timezone.utc)
-        record = _build_record(agent_name, start_time, end_time, "FAILURE", str(exc), error_message=str(exc))
-        return {
-            "evidence_ready": False,
-            "pipeline_status": "FAILED",
-            "error_state": {"agent": agent_name, "error": str(exc), "timestamp": end_time.isoformat()},
-            "state_version": state["state_version"] + 1,
-            "agent_executions": [record],
-        }
-
-
-def _build_record(agent_name, start, end, status, summary, error_message=None, items_processed=0):
-    return {
-        "agent_name": agent_name,
-        "start_time": start.isoformat(),
-        "end_time": end.isoformat(),
-        "status": status,
-        "output_summary": summary,
-        "error_message": error_message,
-        "items_processed": items_processed,
-        "llm_model_used": settings.openai_embedding_model,
-        "tokens_prompt": None, "tokens_completion": None, "tokens_total": None,
-        "estimated_cost_usd": None,
-        "latency_ms": int((end - start).total_seconds() * 1000),
-        "prompt_name": None, "prompt_version": None,
-        "correlation_id": None, "llm_request_id": None,
-    }
+        
+        # 2 & 3. Orchestrate Search
+        for query in queries:
+            # Generate query embedding
+            req = EmbeddingRequest(text=query)
+            res = self.embedding_service.embed(req, correlation_id=context.correlation_id)
+            total_cost += res.cost
+            
+            # Assume 1 vector returned for a single query string
+            query_vector = res.vectors[0].vector
+            
+            search_req = VectorSearchRequest(
+                vector=query_vector,
+                top_k=5,
+                filter=metadata_filter,
+                score_threshold=0.60
+            )
+            
+            # Execute search
+            search_res = self.vector_store_service.search(search_req, correlation_id=context.correlation_id)
+            all_matches.extend(search_res.matches)
+            
+        # 4. Deduplicate and Sort
+        unique_matches: Dict[str, SearchMatch] = {}
+        for match in all_matches:
+            # Deduplicate by vector/record ID, keeping highest score
+            if match.id not in unique_matches or match.score > unique_matches[match.id].score:
+                unique_matches[match.id] = match
+                
+        # Sort descending by similarity
+        sorted_matches = sorted(unique_matches.values(), key=lambda x: x.score, reverse=True)
+        
+        # 5. Populate State
+        latency_ms = int((time.perf_counter() - start_time) * 1000)
+        
+        retrieved_chunks = []
+        citations = []
+        scores = []
+        top_matches_dicts = []
+        doc_sources = set()
+        
+        for m in sorted_matches:
+            chunk_text = m.payload.get("text", "")
+            doc_type = m.metadata.document_type
+            
+            retrieved_chunks.append(chunk_text)
+            doc_sources.add(doc_type)
+            scores.append(m.score)
+            
+            citations.append(f"[{doc_type}] {chunk_text[:50]}...")
+            
+            top_matches_dicts.append({
+                "employee_id": m.metadata.employee_id,
+                "review_cycle_id": m.metadata.review_cycle_id,
+                "document_type": m.metadata.document_type,
+                "chunk_id": m.metadata.chunk_id,
+                "vector_id": m.id,
+                "similarity_score": m.score,
+                "source_document": m.metadata.source,
+                "timestamp": str(m.metadata.created_at) if m.metadata.created_at else None,
+                "content": chunk_text
+            })
+            
+        state.evidence.retrieved_chunks = retrieved_chunks
+        state.evidence.retrieved_documents = list(doc_sources)
+        state.evidence.citations = citations
+        state.evidence.similarity_scores = scores
+        state.evidence.evidence_count = len(sorted_matches)
+        state.evidence.top_matches = top_matches_dicts
+        state.evidence.retrieval_cost = total_cost
+        state.evidence.retrieval_latency_ms = latency_ms
+        state.evidence.status = "completed"
+        
+        # 6. Execution and Audit Logs
+        state.execution.completed_steps.append(self.name)
+        state.audit.agent_logs.append(
+            f"[{self.name}] Retrieved {len(sorted_matches)} chunks. Cost: "
+        )
+        
+        return state

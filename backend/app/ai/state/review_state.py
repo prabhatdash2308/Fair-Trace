@@ -117,7 +117,17 @@ class EvidenceState(BaseModel):
     Purpose: Curated evidence mapped to specific performance dimensions.
     Meaning: Synthesized facts and citations used to ground claims.
     """
+    retrieved_chunks: List[str] = Field(default_factory=list)
+    retrieved_documents: List[str] = Field(default_factory=list)
     citations: List[str] = Field(default_factory=list)
+    similarity_scores: List[float] = Field(default_factory=list)
+    evidence_count: int = Field(default=0, ge=0)
+    retrieval_latency_ms: int = Field(default=0, ge=0)
+    retrieval_cost: float = Field(default=0.0, ge=0.0)
+    top_matches: List[Dict[str, Any]] = Field(default_factory=list)
+    status: str = "pending"
+    
+    # Legacy fields
     evidence_list: List[str] = Field(default_factory=list)
     evidence_strength: float = Field(default=0.0, ge=0.0, le=100.0)
     supporting_sources: List[str] = Field(default_factory=list)
