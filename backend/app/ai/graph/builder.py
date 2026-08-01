@@ -22,7 +22,7 @@ class PipelineBuilder:
         self.workflow.add_node("evidence_retrieval", self.nodes.evidence_retrieval_node)
         self.workflow.add_node("bias_detection", self.nodes.bias_detection_node)
         self.workflow.add_node("performance_analysis", self.nodes.performance_analysis_node)
-        self.workflow.add_node("explainability", self.nodes.explainability_node)
+        self.workflow.add_node("explainability_step", self.nodes.explainability_node)
         self.workflow.add_node("report_generation", self.nodes.report_generation_node)
         self.workflow.add_node("human_approval", self.nodes.human_approval_node)
         self.workflow.add_node("finalization", self.nodes.finalization_node)
@@ -36,7 +36,7 @@ class PipelineBuilder:
         self.workflow.add_conditional_edges("evidence_retrieval", edges.route_after_retrieval)
         self.workflow.add_conditional_edges("bias_detection", edges.route_after_bias)
         self.workflow.add_conditional_edges("performance_analysis", edges.route_after_analysis)
-        self.workflow.add_conditional_edges("explainability", edges.route_after_explainability)
+        self.workflow.add_conditional_edges("explainability_step", edges.route_after_explainability_step)
         self.workflow.add_conditional_edges("report_generation", edges.route_after_report)
         
         self.workflow.add_conditional_edges(
@@ -57,7 +57,7 @@ class PipelineBuilder:
             "bias_detection": "bias_detection",
             "performance_analysis": "performance_analysis",
             "analysis": "performance_analysis", # fallback
-            "explainability": "explainability",
+            "explainability_step": "explainability_step",
             "report_generation": "report_generation",
             "report": "report_generation", # fallback
             "human_approval": "human_approval",

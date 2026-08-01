@@ -23,9 +23,9 @@ def route_after_bias(state: ReviewState) -> str:
     return default_router(state, "performance_analysis")
 
 def route_after_analysis(state: ReviewState) -> str:
-    return default_router(state, "explainability")
+    return default_router(state, "explainability_step")
 
-def route_after_explainability(state: ReviewState) -> str:
+def route_after_explainability_step(state: ReviewState) -> str:
     return default_router(state, "report_generation")
 
 def route_after_report(state: ReviewState) -> str:
