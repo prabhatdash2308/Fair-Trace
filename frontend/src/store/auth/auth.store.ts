@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User, UserRole } from '@/types';
 
-interface AuthUser {
+export interface AuthUser {
   id: string;
   email: string;
   full_name: string;
@@ -10,15 +10,22 @@ interface AuthUser {
 }
 
 interface AuthState {
+  // Tokens
   token: string | null;
+  refreshToken: string | null;
+  expiresAt: number | null;
+
+  // User
   user: AuthUser | null;
+
+  // Status
   isAuthenticated: boolean;
   isLoading: boolean;
 
   // Actions
   login: (token: string, user: AuthUser) => void;
   logout: () => void;
-  setUser: (user: User) => void;
+  setUser: (user: Partial<User>) => void;
   setLoading: (loading: boolean) => void;
 }
 
@@ -26,6 +33,8 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       token: null,
+      refreshToken: null,
+      expiresAt: null,
       user: null,
       isAuthenticated: false,
       isLoading: false,
@@ -34,11 +43,17 @@ export const useAuthStore = create<AuthState>()(
         set({ token, user, isAuthenticated: true }),
 
       logout: () =>
-        set({ token: null, user: null, isAuthenticated: false }),
+        set({
+          token: null,
+          refreshToken: null,
+          expiresAt: null,
+          user: null,
+          isAuthenticated: false,
+        }),
 
-      setUser: (user) =>
+      setUser: (userUpdate) =>
         set((state) => ({
-          user: state.user ? { ...state.user, ...user } : null,
+          user: state.user ? { ...state.user, ...userUpdate } : null,
         })),
 
       setLoading: (isLoading) => set({ isLoading }),
@@ -46,8 +61,11 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'rg_auth',
       storage: createJSONStorage(() => localStorage),
+      // Persist only what is needed to restore the session
       partialize: (state) => ({
         token: state.token,
+        refreshToken: state.refreshToken,
+        expiresAt: state.expiresAt,
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
