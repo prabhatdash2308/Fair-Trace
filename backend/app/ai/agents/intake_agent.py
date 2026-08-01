@@ -1,170 +1,128 @@
 """
-ReviewGuard AI — Agent 1: Intake Agent
-Validates and normalizes all review inputs for a cycle.
-No LLM calls — pure Python data validation and stakeholder analysis.
-SLO: < 1 second
+Intake Agent for deterministic preprocessing.
 """
+import hashlib
+import re
+from typing import List, Optional, Set, Tuple
 
-from datetime import datetime, timezone
+from app.ai.base.base_agent import BaseAgent
+from app.ai.base.execution_context import ExecutionContext
+from app.ai.state.review_state import ReviewState
+from app.ai.base.exceptions import StateValidationError
 
-import structlog
-
-from app.ai.state.review_state import ReviewGuardState, ValidatedInput, StakeholderDistribution
-from models.enums import InputType
-from repositories import review_input_repo
-from core.database import SessionLocal
-
-logger = structlog.get_logger(__name__)
-
-MINIMUM_CHAR_COUNT = 50
-LOW_CHAR_WARNING_THRESHOLD = 200
-IMBALANCE_THRESHOLD = 0.60
-
-
-def intake_agent_node(state: ReviewGuardState) -> dict:
+class IntakeAgent(BaseAgent):
     """
-    Intake Agent Node — Entry point of the pipeline.
-    Fetches inputs, validates structure, computes stakeholder distribution.
+    IntakeAgent is responsible for validating, normalizing, 
+    and deduplicating all inputs before any LLM processing occurs.
     """
-    agent_name = "intake_agent"
-    start_time = datetime.now(timezone.utc)
-    logger.info("agent_started", agent=agent_name, correlation_id=state["correlation_id"])
+    def __init__(self, name: str = "IntakeAgent", max_retries: int = 0):
+        # We don't need LLM or Qdrant for this agent, and no retries needed for deterministic work.
+        super().__init__(name=name, max_retries=max_retries)
+        self.max_payload_size = 500_000  # Example size limit
+        
+    def _validate_before_process(self, state: ReviewState) -> None:
+        """Specific validations for Intake."""
+        if not state.metadata.employee_id:
+            raise StateValidationError("Missing employee_id in ReviewState.")
+        if not state.metadata.review_cycle_id:
+            raise StateValidationError("Missing review_cycle_id in ReviewState.")
+            
+    def _normalize_text(self, text: Optional[str]) -> Optional[str]:
+        if not text:
+            return None
+        # Normalize line endings
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
+        # Remove trailing and leading spaces on each line
+        text = "\n".join(line.strip() for line in text.split("\n"))
+        # Normalize excessive whitespace
+        text = re.sub(r"\n{3,}", "\n\n", text)
+        text = re.sub(r"[ \t]+", " ", text)
+        return text.strip()
 
-    db = SessionLocal()
-    try:
-        cycle_id = state["review_cycle_id"]
-        inputs = review_input_repo.list_for_cycle(db, cycle_id)  # type: ignore[arg-type]
+    def _hash_text(self, text: str) -> str:
+        return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
-        if not inputs:
-            return _fail(state, agent_name, start_time, "No inputs submitted for this review cycle.")
+    def _process(self, state: ReviewState, context: ExecutionContext) -> ReviewState:
+        # Validate inputs
+        self._validate_before_process(state)
+        
+        seen_hashes: Set[str] = set()
+        duplicates_removed = 0
+        empty_removed = 0
+        total_size = 0
+        
+        def process_field(text: Optional[str], doc_type: str) -> Optional[str]:
+            nonlocal duplicates_removed, empty_removed, total_size
+            if not text:
+                return None
+                
+            normalized = self._normalize_text(text)
+            if not normalized:
+                empty_removed += 1
+                return None
+                
+            text_hash = self._hash_text(normalized)
+            if text_hash in seen_hashes:
+                duplicates_removed += 1
+                state.audit.warnings.append(f"[{self.name}] Duplicate {doc_type} detected and removed.")
+                return None
+                
+            seen_hashes.add(text_hash)
+            total_size += len(normalized)
+            return normalized
 
-        # ── Build ValidatedInput list ───────────────────────────────────────────
-        validated: list[ValidatedInput] = []
-        warnings: list[str] = []
+        def process_list_field(texts: List[str], doc_type: str) -> List[str]:
+            processed = []
+            for t in texts:
+                res = process_field(t, doc_type)
+                if res:
+                    processed.append(res)
+            return processed
 
-        for inp in inputs:
-            text = inp.content_text.strip()
-            if len(text) < MINIMUM_CHAR_COUNT:
-                warnings.append(
-                    f"Input {inp.id} ({inp.input_type.value}) has fewer than {MINIMUM_CHAR_COUNT} characters — skipped."
-                )
+        # Process Single Fields
+        state.input.self_assessment = process_field(state.input.self_assessment, "Self Assessment")
+        state.input.manager_feedback = process_field(state.input.manager_feedback, "Manager Feedback")
+        
+        # Process List Fields
+        state.input.peer_feedback = process_list_field(state.input.peer_feedback, "Peer Feedback")
+        state.input.meeting_notes = process_list_field(state.input.meeting_notes, "Meeting Notes")
+        state.input.project_outcomes = process_list_field(state.input.project_outcomes, "Project Outcomes")
+        state.input.goals = process_list_field(state.input.goals, "Goals")
+        
+        # Process Uploaded Documents (Classification)
+        classified_docs = []
+        for doc in state.input.uploaded_documents:
+            normalized = process_field(doc, "Uploaded Document")
+            if not normalized:
                 continue
-            if len(text) < LOW_CHAR_WARNING_THRESHOLD:
-                warnings.append(
-                    f"Input {inp.id} ({inp.input_type.value}) has low character count ({len(text)} chars)."
-                )
+                
+            # Naive classification logic based on keywords
+            lower_doc = normalized.lower()
+            if "self assessment" in lower_doc or "my performance" in lower_doc:
+                if not state.input.self_assessment:
+                    state.input.self_assessment = normalized
+                else:
+                    state.input.self_assessment += "\n\n" + normalized
+                state.audit.agent_logs.append(f"[{self.name}] Classified document as Self Assessment.")
+            elif "peer review" in lower_doc or "feedback for" in lower_doc:
+                state.input.peer_feedback.append(normalized)
+                state.audit.agent_logs.append(f"[{self.name}] Classified document as Peer Feedback.")
+            elif "goal" in lower_doc or "objective" in lower_doc:
+                state.input.goals.append(normalized)
+                state.audit.agent_logs.append(f"[{self.name}] Classified document as Goal.")
+            else:
+                classified_docs.append(normalized)
+                state.audit.agent_logs.append(f"[{self.name}] Classified document as Unknown.")
+                
+        state.input.uploaded_documents = classified_docs
+        
+        if total_size > self.max_payload_size:
+            raise StateValidationError(f"Total input payload size ({total_size} chars) exceeds maximum allowed ({self.max_payload_size} chars).")
 
-            submitted_at = inp.submitted_at or datetime.now(timezone.utc)
-            validated.append(ValidatedInput(
-                input_id=str(inp.id),
-                input_type=inp.input_type.value,
-                content_text=text,
-                submitted_by_id=str(inp.submitted_by),
-                submitted_at=submitted_at.isoformat(),
-                is_anonymized=inp.is_anonymized,
-                char_count=len(text),
-                submission_week=submitted_at.isocalendar().week,
-            ))
-
-        if not validated:
-            return _fail(state, agent_name, start_time, "All inputs were below the minimum character threshold.")
-
-        # ── Validate minimum source requirements ────────────────────────────────
-        types_present = {v["input_type"] for v in validated}
-        if InputType.SELF_ASSESSMENT.value not in types_present:
-            return _fail(state, agent_name, start_time,
-                         "A self-assessment is required to proceed with the pipeline.")
-        if len(types_present) < 2:
-            return _fail(state, agent_name, start_time,
-                         "At least two different input source types are required.")
-
-        # ── Stakeholder Distribution ────────────────────────────────────────────
-        total = len(validated)
-        counts: dict[str, int] = {t.value: 0 for t in InputType}
-        for v in validated:
-            counts[v["input_type"]] = counts.get(v["input_type"], 0) + 1
-
-        distribution = StakeholderDistribution(
-            self_assessment_pct=round(counts.get("SELF_ASSESSMENT", 0) / total, 3),
-            manager_note_pct=round(counts.get("MANAGER_NOTE", 0) / total, 3),
-            peer_review_pct=round(counts.get("PEER_REVIEW", 0) / total, 3),
-            project_outcome_pct=round(counts.get("PROJECT_OUTCOME", 0) / total, 3),
-            goal_pct=round(counts.get("GOAL", 0) / total, 3),
-            meeting_note_pct=round(counts.get("MEETING_NOTE", 0) / total, 3),
-            dominant_source=max(counts, key=counts.get),  # type: ignore
-            is_imbalanced=any(c / total > IMBALANCE_THRESHOLD for c in counts.values()),
-        )
-
-        if distribution["is_imbalanced"]:
-            warnings.append(
-                f"Stakeholder imbalance detected: '{distribution['dominant_source']}' "
-                f"contributes > {int(IMBALANCE_THRESHOLD * 100)}% of all inputs."
-            )
-
-        end_time = datetime.now(timezone.utc)
-        execution_record = _build_record(
-            agent_name, start_time, end_time, "SUCCESS",
-            f"Validated {len(validated)} inputs across {len(types_present)} source types.",
-            items_processed=len(validated),
-        )
-
-        logger.info("agent_completed", agent=agent_name, items=len(validated),
-                    correlation_id=state["correlation_id"])
-
-        return {
-            "validated_inputs": validated,
-            "intake_complete": True,
-            "intake_warnings": warnings,
-            "stakeholder_distribution": distribution,
-            "state_version": state["state_version"] + 1,
-            "current_agent": agent_name,
-            "agent_executions": [execution_record],
-        }
-
-    except Exception as exc:
-        logger.exception("agent_failed", agent=agent_name, error=str(exc))
-        return _fail(state, agent_name, start_time, str(exc))
-    finally:
-        db.close()
-
-
-def _fail(state: ReviewGuardState, agent: str, start: datetime, message: str) -> dict:
-    end_time = datetime.now(timezone.utc)
-    record = _build_record(agent, start, end_time, "FAILURE", message, error_message=message)
-    return {
-        "intake_complete": False,
-        "pipeline_status": "FAILED",
-        "error_state": {"agent": agent, "error": message, "timestamp": end_time.isoformat()},
-        "state_version": state["state_version"] + 1,
-        "agent_executions": [record],
-    }
-
-
-def _build_record(
-    agent_name: str,
-    start: datetime,
-    end: datetime,
-    status: str,
-    summary: str,
-    error_message: str | None = None,
-    items_processed: int = 0,
-) -> dict:
-    return {
-        "agent_name": agent_name,
-        "start_time": start.isoformat(),
-        "end_time": end.isoformat(),
-        "status": status,
-        "output_summary": summary,
-        "error_message": error_message,
-        "items_processed": items_processed,
-        "llm_model_used": None,
-        "tokens_prompt": None,
-        "tokens_completion": None,
-        "tokens_total": None,
-        "estimated_cost_usd": None,
-        "latency_ms": int((end - start).total_seconds() * 1000),
-        "prompt_name": None,
-        "prompt_version": None,
-        "correlation_id": None,
-        "llm_request_id": None,
-    }
+        # Update ExecutionState
+        state.execution.completed_steps.append(self.name)
+        
+        # Audit Logs
+        state.audit.agent_logs.append(f"[{self.name}] Processed inputs: {duplicates_removed} duplicates removed, {empty_removed} empty inputs removed.")
+        
+        return state
