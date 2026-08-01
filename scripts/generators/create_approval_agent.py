@@ -1,4 +1,11 @@
-"""
+import os
+from pathlib import Path
+import datetime
+
+agent_path = Path("backend/app/ai/agents/human_approval_agent.py")
+agent_path.parent.mkdir(parents=True, exist_ok=True)
+
+content = '''"""
 Human Approval Agent for orchestrating manual oversight of AI-generated reviews.
 """
 import time
@@ -75,7 +82,7 @@ class HumanApprovalAgent(BaseAgent):
         report_summary = state.report.executive_summary
         conf_summary = state.report.confidence_summary
         bias_sum = state.report.bias_summary
-        risks = "\n".join(state.report.limitations) if state.report.limitations else "None."
+        risks = "\\n".join(state.report.limitations) if state.report.limitations else "None."
         
         # 4. Render Prompts
         sys_prompt, user_prompt = self.prompt_registry.render_prompt(
@@ -121,3 +128,16 @@ class HumanApprovalAgent(BaseAgent):
         )
         
         return state
+'''
+agent_path.write_text(content, encoding="utf-8")
+
+# Prompts
+sys_prompt = Path("backend/app/ai/prompts/system/human_approval.txt")
+sys_prompt.parent.mkdir(parents=True, exist_ok=True)
+sys_prompt.write_text("Enterprise HR Review Coordinator. Prepare a concise approval summary. Never rewrite report. Never generate new analysis. Return STRICT JSON.", encoding="utf-8")
+
+user_prompt = Path("backend/app/ai/prompts/user/human_approval.txt")
+user_prompt.parent.mkdir(parents=True, exist_ok=True)
+user_prompt.write_text("Report: {{report_summary}}\\nConfidence: {{confidence_summary}}\\nBias: {{bias_summary}}\\nRisks: {{pending_risks}}\\nPrepare the human reviewer checklist.", encoding="utf-8")
+
+print("HumanApprovalAgent created")

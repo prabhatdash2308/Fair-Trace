@@ -217,9 +217,25 @@ class ApprovalState(BaseModel):
     Purpose: Tracks the human-in-the-loop review process.
     Meaning: Ensures human oversight before finalizing the review.
     """
-    approval_status: ApprovalStatus = ApprovalStatus.PENDING
-    approved_by: Optional[UUID4] = None
-    approved_at: Optional[datetime] = None
+    approval_required: bool = True
+    approval_status: str = "PENDING"
+    reviewer_notes: str = ""
+    approval_summary: str = ""
+    approval_reason: str = ""
+    pending_actions: List[str] = Field(default_factory=list)
+    assigned_reviewer: Optional[str] = None
+    submitted_at: Optional[str] = None
+    approved_at: Optional[str] = None
+    status: str = "pending"
+    reviewer_checklist: List[str] = Field(default_factory=list)
+    risk_flags: List[str] = Field(default_factory=list)
+    pending_questions: List[str] = Field(default_factory=list)
+    recommended_action: str = ""
+    approval_latency_ms: int = Field(default=0)
+    approval_cost: float = Field(default=0.0)
+    
+    # Legacy fields
+    approved_by: Optional[str] = None
     reviewer_comments: str = ""
 
 class ExplainabilityState(BaseModel):
