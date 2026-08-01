@@ -12,10 +12,10 @@ from datetime import datetime, timezone
 
 import structlog
 
-from agents.state import ReviewGuardState, PerformanceClaimState, EvidenceCitationState
+from app.ai.state.review_state import ReviewGuardState, PerformanceClaimState, EvidenceCitationState
 from config import settings
 from core.database import SessionLocal
-from core.llm import call_llm_with_fallback
+from app.ai.services.llm_service import call_llm_with_fallback
 from models.enums import ConfidenceLevel, ReportStatus
 from repositories import audit_repo, report_repo, bias_flag_repo, citation_repo
 from repositories.repositories import report_repo as rrepo

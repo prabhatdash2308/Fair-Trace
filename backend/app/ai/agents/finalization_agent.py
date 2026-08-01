@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 import structlog
 
-from agents.state import ReviewGuardState
+from app.ai.state.review_state import ReviewGuardState
 from core.database import SessionLocal
 from models.enums import ReviewCycleStatus, AuditEventType
 from repositories import audit_repo

@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import structlog
 
-from agents.state import ReviewGuardState, ValidatedInput, StakeholderDistribution
+from app.ai.state.review_state import ReviewGuardState, ValidatedInput, StakeholderDistribution
 from models.enums import InputType
 from repositories import review_input_repo
 from core.database import SessionLocal

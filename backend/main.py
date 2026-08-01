@@ -12,7 +12,7 @@ from fastapi.exceptions import RequestValidationError
 
 from config import settings
 from core.exceptions import ReviewGuardException
-from core.vector_store import ensure_collection, health_check as qdrant_health
+from app.ai.services.qdrant_service import ensure_collection, health_check as qdrant_health
 from middleware.correlation_middleware import CorrelationMiddleware
 from middleware.logging_middleware import LoggingMiddleware
 from routers.routers import (

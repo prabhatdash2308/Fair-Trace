@@ -9,10 +9,10 @@ from datetime import datetime, timezone
 
 import structlog
 
-from agents.state import ReviewGuardState, EvidenceCitationState
+from app.ai.state.review_state import ReviewGuardState, EvidenceCitationState
 from config import settings
-from core.llm import embed_single
-from core.vector_store import search_by_cycle
+from app.ai.services.llm_service import embed_single
+from app.ai.services.qdrant_service import search_by_cycle
 
 logger = structlog.get_logger(__name__)
 

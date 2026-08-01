@@ -10,10 +10,10 @@ from datetime import datetime, timezone
 import structlog
 from qdrant_client.models import PointStruct
 
-from agents.state import ReviewGuardState
+from app.ai.state.review_state import ReviewGuardState
 from config import settings
-from core.llm import embed_texts
-from core.vector_store import COLLECTION_NAME, ensure_collection, upsert_points
+from app.ai.services.llm_service import embed_texts
+from app.ai.services.qdrant_service import COLLECTION_NAME, ensure_collection, upsert_points
 from repositories import review_input_repo
 from core.database import SessionLocal
 

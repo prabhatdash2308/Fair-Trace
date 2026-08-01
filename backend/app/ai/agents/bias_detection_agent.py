@@ -11,9 +11,9 @@ from collections import Counter
 
 import structlog
 
-from agents.state import ReviewGuardState, BiasFlagState
+from app.ai.state.review_state import ReviewGuardState, BiasFlagState
 from config import settings
-from core.llm import call_llm_with_fallback
+from app.ai.services.llm_service import call_llm_with_fallback
 
 logger = structlog.get_logger(__name__)
 

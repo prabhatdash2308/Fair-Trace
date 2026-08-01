@@ -10,8 +10,8 @@ from typing import Optional
 
 import structlog
 
-from agents.graph import pipeline_graph
-from agents.state import ReviewGuardState
+from app.ai.graph.graph import pipeline_graph
+from app.ai.state.review_state import ReviewGuardState
 from core.database import SessionLocal
 from core.exceptions import (
     BusinessValidationError,

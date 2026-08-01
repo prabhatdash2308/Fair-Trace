@@ -15,16 +15,16 @@ Node execution order:
 
 from langgraph.graph import StateGraph, END
 
-from agents.state import ReviewGuardState
-from agents.intake_agent import intake_agent_node
-from agents.embedding_agent import embedding_agent_node
-from agents.evidence_retrieval_agent import evidence_retrieval_node
-from agents.bias_detection_agent import bias_detection_node
-from agents.performance_analysis_agent import performance_analysis_node
-from agents.report_generation_agent import report_generation_node
-from agents.explainability_agent import explainability_node
-from agents.human_approval_agent import human_approval_node
-from agents.finalization_agent import finalization_node
+from app.ai.state.review_state import ReviewGuardState
+from app.ai.agents.intake_agent import intake_agent_node
+from app.ai.agents.embedding_agent import embedding_agent_node
+from app.ai.agents.evidence_retrieval_agent import evidence_retrieval_node
+from app.ai.agents.bias_detection_agent import bias_detection_node
+from app.ai.agents.performance_analysis_agent import performance_analysis_node
+from app.ai.agents.report_generation_agent import report_generation_node
+from app.ai.agents.explainability_agent import explainability_node
+from app.ai.agents.human_approval_agent import human_approval_node
+from app.ai.agents.finalization_agent import finalization_node
 
 
 # ── Routing Functions ──────────────────────────────────────────────────────────

@@ -11,10 +11,10 @@ from uuid import UUID
 
 import structlog
 
-from agents.state import ReviewGuardState, ExplanationTrace
+from app.ai.state.review_state import ReviewGuardState, ExplanationTrace
 from config import settings
 from core.database import SessionLocal
-from core.llm import call_llm_with_fallback
+from app.ai.services.llm_service import call_llm_with_fallback
 from sqlalchemy import text
 
 logger = structlog.get_logger(__name__)

@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 
 from core.security import hash_password, verify_password, create_access_token, verify_token
 from core.exceptions import InvalidTokenError
-from agents.performance_analysis_agent import _calculate_confidence
+from app.ai.agents.performance_analysis_agent import _calculate_confidence
 
 
 # ── Auth Service Tests ─────────────────────────────────────────────────────────
