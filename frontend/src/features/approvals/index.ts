@@ -1,1 +1,2 @@
-// approvals feature module — to be implemented in future phases.
+export * from './types/approval.types';
+export * from './hooks/useApprovals';

@@ -1,1 +1,3 @@
-// reviews feature module — to be implemented in future phases.
+export * from './types/review.types';
+export * from './api/review.api';
+export * from './hooks/useReviews';
