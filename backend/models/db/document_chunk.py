@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float, ForeignKey, JSON, Index, Text
+from sqlalchemy import Column, String, Integer, Float, ForeignKey, JSON, Index, Text, DateTime
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 import uuid
@@ -42,6 +42,14 @@ class DocumentChunk(Base):
     embedding_status = Column(String, nullable=True)
     vector_id = Column(String, nullable=True)
     embedding_model = Column(String, nullable=True)
+    embedding_provider = Column(String, nullable=True)
+    embedding_version = Column(String, nullable=True)
+    embedding_dimensions = Column(Integer, nullable=True)
+    embedding_created_at = Column(DateTime(timezone=True), nullable=True)
+    embedding_duration_ms = Column(Integer, nullable=True)
+    embedding_checksum = Column(String, nullable=True)
+    token_count = Column(Integer, nullable=True)
+    embedding_error = Column(String, nullable=True)
     
     # Flexible metadata (headings, versioning, HR context)
     # Using JSON to support SQLite in tests, but in Postgres this is JSONB

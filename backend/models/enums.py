@@ -117,3 +117,10 @@ class ChunkStatus(str, enum.Enum):
     EMBEDDED = "EMBEDDED"
     FAILED = "FAILED"
 
+class EmbeddingStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    QUEUED = "QUEUED"
+    PROCESSING = "PROCESSING"
+    EMBEDDED = "EMBEDDED"
+    FAILED = "FAILED"
+

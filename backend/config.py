@@ -29,6 +29,13 @@ class Settings(BaseSettings):
     # ── Qdrant Vector Store ────────────────────────────────────────────────────
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection_name: str = "reviewguard_documents"
+    
+    @property
+    def QDRANT_COLLECTION(self) -> str:
+        return self.qdrant_collection_name
+        
+    vector_distance: str = "Cosine"
+    upsert_batch_size: int = 100
 
     # ── OpenAI ────────────────────────────────────────────────────────────────
     openai_api_key: str
@@ -36,6 +43,11 @@ class Settings(BaseSettings):
     openai_fallback_model: str = "gpt-4.1-mini"
     openai_embedding_model: str = "text-embedding-3-small"
     embedding_dimension: int = 1536
+    
+    # ── Embedding Pipeline ────────────────────────────────────────────────────
+    openai_embedding_batch_size: int = 50
+    embedding_max_retries: int = 3
+    embedding_timeout: int = 30
 
     # ── JWT ───────────────────────────────────────────────────────────────────
     jwt_secret_key: str

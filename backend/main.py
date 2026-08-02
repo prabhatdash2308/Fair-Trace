@@ -25,6 +25,7 @@ from routers.routers import (
 )
 from routers.auth import router as auth_router
 from routers.uploads import router as uploads_router
+from routers.embeddings import router as embeddings_router
 
 # Configure structured logging
 structlog.configure(
@@ -117,14 +118,15 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
 
 API_V1 = "/api/v1"
 
-app.include_router(auth_router,     prefix=f"{API_V1}/auth",          tags=["Authentication"])
-app.include_router(users_router,    prefix=f"{API_V1}/users",          tags=["Users"])
-app.include_router(uploads_router,  prefix=f"{API_V1}/uploads",        tags=["Document Uploads"])
-app.include_router(cycles_router,   prefix=f"{API_V1}/review-cycles",  tags=["Review Cycles"])
-app.include_router(inputs_router,   prefix=f"{API_V1}/review-cycles",  tags=["Inputs"])
-app.include_router(pipeline_router, prefix=f"{API_V1}",                tags=["Pipeline"])
-app.include_router(reports_router,  prefix=f"{API_V1}/reports",        tags=["Reports"])
-app.include_router(audit_router,    prefix=f"{API_V1}/audit",          tags=["Audit"])
+app.include_router(auth_router,       prefix=f"{API_V1}/auth",          tags=["Authentication"])
+app.include_router(users_router,      prefix=f"{API_V1}/users",          tags=["Users"])
+app.include_router(uploads_router,    prefix=f"{API_V1}/uploads",        tags=["Document Uploads"])
+app.include_router(embeddings_router, prefix=f"{API_V1}/embeddings",    tags=["Embeddings"])
+app.include_router(cycles_router,     prefix=f"{API_V1}/review-cycles",  tags=["Review Cycles"])
+app.include_router(inputs_router,     prefix=f"{API_V1}/review-cycles",  tags=["Inputs"])
+app.include_router(pipeline_router,   prefix=f"{API_V1}",                tags=["Pipeline"])
+app.include_router(reports_router,    prefix=f"{API_V1}/reports",        tags=["Reports"])
+app.include_router(audit_router,      prefix=f"{API_V1}/audit",          tags=["Audit"])
 
 
 # ── Health Check ───────────────────────────────────────────────────────────────
@@ -162,16 +164,20 @@ async def health_check():
     )
 
 
-# ── Startup / Shutdown ─────────────────────────────────────────────────────────
+from app.vectorstore.qdrant_service import QdrantService
+from config import get_settings
+import asyncio
 
+# ── Events ────────────────────────────────────────────────────────────────────
 @app.on_event("startup")
 async def startup() -> None:
     logger.info("reviewguard_api_starting", version=settings.app_version, env=settings.environment)
 
-    # Ensure Qdrant collection exists
+    # Ensure Qdrant collection exists via Enterprise pipeline
     try:
-        ensure_collection()
-        logger.info("qdrant_collection_ready", collection=settings.qdrant_collection_name)
+        vector_store = QdrantService(settings=settings)
+        await vector_store.initialize_collection()
+        logger.info("qdrant_collection_ready", collection=settings.QDRANT_COLLECTION)
     except Exception as exc:
         logger.error("qdrant_startup_failed", error=str(exc))
 

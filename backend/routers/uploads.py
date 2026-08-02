@@ -4,11 +4,12 @@ Secure API for document ingestion, retrieval, and deletion.
 """
 import uuid
 from typing import List, Optional
-from fastapi import APIRouter, Depends, UploadFile, File, Query, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, Query, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from core.exceptions import ForbiddenError
 from dependencies import get_db, get_current_user, CurrentUser
+from config import Settings, get_settings
 from app.storage.service import StorageService
 from services.document_upload_service import DocumentUploadService
 from models.db.document import Document
@@ -149,3 +150,29 @@ async def chunk_document(
         # We catch everything else inside the service, but if it throws ChunkingError:
         raise HTTPException(status_code=422, detail=str(e))
 
+@router.post("/{document_id}/embed")
+async def embed_document(
+    document_id: uuid.UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings)
+):
+    """
+    Generates embeddings for document chunks and upserts them to Qdrant.
+    Idempotent operation (skips already embedded chunks).
+    """
+    from app.ai.embeddings.service import EmbeddingService
+    from app.vectorstore.qdrant_service import QdrantService
+    
+    vector_store = QdrantService(settings=settings)
+    embedding_service = EmbeddingService(db=db, settings=settings, vector_store=vector_store)
+    
+    try:
+        stats = await embedding_service.embed_document(
+            document_id=str(document_id),
+            user_id=current_user.id,
+            organization_id=getattr(current_user, "organization_id", None)
+        )
+        return stats
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
