@@ -107,6 +107,7 @@ class EmbeddingService:
                         "document_type": chunk_orm.metadata_.get("document_type"),
                         "parser_version": chunk_orm.metadata_.get("parser_version"),
                         "chunk_version": chunk_orm.metadata_.get("chunk_version"),
+                        "chunk_index": chunk_orm.chunk_index,
                         "embedding_model": response.model,
                         "embedding_provider": response.provider,
                         "checksum": chunk_orm.checksum,

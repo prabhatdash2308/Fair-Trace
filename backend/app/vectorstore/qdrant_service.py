@@ -109,6 +109,20 @@ class QdrantService(BaseVectorStore):
             logger.error("qdrant_upsert_error", error=str(e))
             raise VectorUpsertError(f"Failed to upsert to Qdrant: {str(e)}")
 
+    async def search(self, vector: List[float], top_k: int, score_threshold: float, filter_conditions: Any = None) -> List[Any]:
+        """Perform semantic search using Qdrant."""
+        self._validate_vector(vector)
+        
+        search_result = await self.client.search(
+            collection_name=self.collection_name,
+            query_vector=vector,
+            limit=top_k,
+            score_threshold=score_threshold,
+            query_filter=filter_conditions,
+            with_payload=True
+        )
+        return search_result
+
     async def health(self) -> Dict[str, Any]:
         start_time = time.time()
         try:

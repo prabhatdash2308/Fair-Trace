@@ -16,6 +16,11 @@ class BaseVectorStore(ABC):
         pass
 
     @abstractmethod
+    async def search(self, vector: List[float], top_k: int, score_threshold: float, filter_conditions: Any = None) -> List[Any]:
+        """Search the vector store for similar vectors."""
+        pass
+
+    @abstractmethod
     async def health(self) -> Dict[str, Any]:
         """Check vector store health, permissions, and schema configuration."""
         pass

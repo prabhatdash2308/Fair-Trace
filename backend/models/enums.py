@@ -99,12 +99,26 @@ class AuditEventType(str, enum.Enum):
     USER_LOGIN = "USER_LOGIN"
     USER_LOGOUT = "USER_LOGOUT"
     ACCESS_DENIED = "ACCESS_DENIED"
+    RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED"
+
+
+class RetrievalStrategy(str, enum.Enum):
+    SEMANTIC = "semantic"
+    HYBRID = "hybrid"
+    KEYWORD = "keyword"
+
+
+class SearchMode(str, enum.Enum):
+    STRICT = "STRICT"
+    BALANCED = "BALANCED"
+    EXHAUSTIVE = "EXHAUSTIVE"
 
 
 class ApprovalAction(str, enum.Enum):
     APPROVE = "APPROVE"
     REVISION_REQUESTED = "REVISION_REQUESTED"
     REJECT = "REJECT"
+
 
 class ChunkStrategy(str, enum.Enum):
     SEMANTIC = "SEMANTIC"

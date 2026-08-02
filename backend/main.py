@@ -26,6 +26,7 @@ from routers.routers import (
 from routers.auth import router as auth_router
 from routers.uploads import router as uploads_router
 from routers.embeddings import router as embeddings_router
+from routers.retrieval import router as retrieval_router
 
 # Configure structured logging
 structlog.configure(
@@ -122,6 +123,7 @@ app.include_router(auth_router,       prefix=f"{API_V1}/auth",          tags=["A
 app.include_router(users_router,      prefix=f"{API_V1}/users",          tags=["Users"])
 app.include_router(uploads_router,    prefix=f"{API_V1}/uploads",        tags=["Document Uploads"])
 app.include_router(embeddings_router, prefix=f"{API_V1}/embeddings",    tags=["Embeddings"])
+app.include_router(retrieval_router,  prefix=f"{API_V1}",                tags=["Retrieval"])
 app.include_router(cycles_router,     prefix=f"{API_V1}/review-cycles",  tags=["Review Cycles"])
 app.include_router(inputs_router,     prefix=f"{API_V1}/review-cycles",  tags=["Inputs"])
 app.include_router(pipeline_router,   prefix=f"{API_V1}",                tags=["Pipeline"])

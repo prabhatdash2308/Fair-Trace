@@ -84,6 +84,15 @@ class Settings(BaseSettings):
     min_chunk_size: int = 300
     max_chunk_size: int = 2500
 
+    # ── Retrieval Settings ─────────────────────────────────────────────────────
+    retrieval_strategy: str = "semantic"
+    retrieval_top_k: int = 10
+    retrieval_score_threshold: float = 0.75
+    retrieval_max_context_chunks: int = 20
+    max_context_tokens: int = 12000
+    hybrid_search_enabled: bool = False
+    rerank_enabled: bool = False
+
     # ── Circuit Breaker ────────────────────────────────────────────────────────
     circuit_breaker_failure_threshold: int = 3
     circuit_breaker_window_seconds: int = 60
