@@ -25,6 +25,24 @@ class ReportStatus(str, enum.Enum):
     REJECTED = "REJECTED"
 
 
+class DocumentStatus(str, enum.Enum):
+    UPLOADING = "UPLOADING"
+    VALIDATING = "VALIDATING"
+    STORED = "STORED"
+    PROCESSING = "PROCESSING"
+    PARSED = "PARSED"
+    INDEXED = "INDEXED"
+    FAILED = "FAILED"
+    DELETED = "DELETED"
+
+
+class ParsingStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    PARSING = "PARSING"
+    PARSED = "PARSED"
+    FAILED = "FAILED"
+
+
 class InputType(str, enum.Enum):
     SELF_ASSESSMENT = "SELF_ASSESSMENT"
     MANAGER_NOTE = "MANAGER_NOTE"
@@ -87,3 +105,15 @@ class ApprovalAction(str, enum.Enum):
     APPROVE = "APPROVE"
     REVISION_REQUESTED = "REVISION_REQUESTED"
     REJECT = "REJECT"
+
+class ChunkStrategy(str, enum.Enum):
+    SEMANTIC = "SEMANTIC"
+    RECURSIVE = "RECURSIVE"
+    SENTENCE = "SENTENCE"
+
+class ChunkStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    VALIDATED = "VALIDATED"
+    EMBEDDED = "EMBEDDED"
+    FAILED = "FAILED"
+

@@ -42,7 +42,7 @@ class TestJWT:
 
     def test_missing_sub_raises(self):
         """Token without 'sub' claim should raise InvalidTokenError."""
-        import jwt as pyjwt
+        from jose import jwt as pyjwt
         from config import settings
         bad_token = pyjwt.encode({"email": "x@x.com"}, settings.jwt_secret_key, algorithm="HS256")
         with pytest.raises(InvalidTokenError):

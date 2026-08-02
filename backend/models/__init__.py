@@ -12,6 +12,8 @@ from models.db.performance_claim import PerformanceClaim
 from models.db.evidence_citation import EvidenceCitation
 from models.db.bias_flag import BiasFlag
 from models.db.audit_event import AuditEvent
+from models.db.document import Document
+from models.db.document_chunk import DocumentChunk
 
 __all__ = [
     "Base",
@@ -24,4 +26,6 @@ __all__ = [
     "EvidenceCitation",
     "BiasFlag",
     "AuditEvent",
+    "Document",
+    "DocumentChunk",
 ]

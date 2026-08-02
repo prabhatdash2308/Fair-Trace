@@ -10,6 +10,53 @@ from app.ai.base.execution_context import ExecutionContext
 from app.ai.state.review_state import ReviewState
 from app.ai.base.exceptions import StateValidationError
 
+def _calculate_confidence(state: dict) -> dict:
+    """
+    Calculates a deterministic confidence score based on the amount of evidence,
+    its relevance (similarity), diversity of sources, and penalizes for bias.
+    """
+    evidence_index = state.get("evidence_index", [])
+    evidence_count = len(evidence_index)
+    
+    if evidence_count == 0:
+        return {
+            "score": "INSUFFICIENT",
+            "numeric_score": 0.0,
+            "explanation": "No evidence was found to support the analysis."
+        }
+        
+    avg_sim = sum(e.get("similarity_score", 0.0) for e in evidence_index) / evidence_count if evidence_count > 0 else 0.0
+    input_types = len({v.get("input_type") for v in state.get("validated_inputs", [])})
+    
+    # Base score built from evidence quality and diversity
+    base_score = 0.0
+    base_score += min(evidence_count * 0.1, 0.4) # Up to 0.4 for volume
+    base_score += min(avg_sim * 0.4, 0.4)        # Up to 0.4 for relevance
+    base_score += min(input_types * 0.1, 0.2)    # Up to 0.2 for diversity
+    
+    # Penalties for bias
+    high_bias = state.get("high_bias_count", 0)
+    medium_bias = state.get("medium_bias_count", 0)
+    
+    penalty = (high_bias * 0.15) + (medium_bias * 0.05)
+    
+    final_score = max(0.0, min(1.0, base_score - penalty))
+    
+    if final_score >= 0.7:
+        score_label = "HIGH"
+    elif final_score >= 0.5:
+        score_label = "MEDIUM"
+    elif final_score >= 0.3:
+        score_label = "LOW"
+    else:
+        score_label = "INSUFFICIENT"
+        
+    return {
+        "score": score_label,
+        "numeric_score": final_score,
+        "explanation": f"Computed from {evidence_count} evidence items with average similarity {avg_sim:.2f}, spanning {input_types} source types, penalized by {high_bias} high biases."
+    }
+
 from app.ai.services.llm import LLMService, LLMRequest
 from app.ai.prompts import PromptRegistry, PromptMetadata
 

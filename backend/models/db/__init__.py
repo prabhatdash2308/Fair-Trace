@@ -1,1 +1,2 @@
-"""Empty init for db subpackage."""
+"""DB models subpackage."""
+from .document_chunk import DocumentChunk

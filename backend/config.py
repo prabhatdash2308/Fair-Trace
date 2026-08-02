@@ -48,6 +48,30 @@ class Settings(BaseSettings):
     chunk_overlap_chars: int = 200
     similarity_threshold: float = 0.60
 
+    # ── Document Upload & Storage ──────────────────────────────────────────────
+    upload_max_size_mb: int = 25
+    upload_allowed_types: List[str] = [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/plain"
+    ]
+    upload_directory: str = "/tmp/reviewguard/uploads"
+    temp_directory: str = "/tmp/reviewguard/temp"
+    checksum_algorithm: str = "sha256"
+
+    # ── Document Parsing ───────────────────────────────────────────────────────
+    parser_timeout_seconds: int = 30
+    max_pages: int = 100
+    max_file_size_bytes: int = 25 * 1024 * 1024  # 25MB matches upload_max_size_mb
+    max_text_size_characters: int = 500_000
+    max_metadata_size_bytes: int = 50 * 1024  # 50KB
+
+    # ── Chunking Settings ──────────────────────────────────────────────────────
+    chunk_size: int = 2000
+    chunk_overlap: int = 200
+    min_chunk_size: int = 300
+    max_chunk_size: int = 2500
+
     # ── Circuit Breaker ────────────────────────────────────────────────────────
     circuit_breaker_failure_threshold: int = 3
     circuit_breaker_window_seconds: int = 60

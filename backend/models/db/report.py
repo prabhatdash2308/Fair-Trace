@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Any, List, Optional
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, JSON
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -28,7 +28,7 @@ class Report(Base, TimestampMixin):
         index=True,
     )
     executive_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    recommended_actions: Mapped[Optional[List[str]]] = mapped_column(JSONB, nullable=True)  # List[str]
+    recommended_actions: Mapped[Optional[List[str]]] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=True)  # List[str]
     confidence_score: Mapped[Optional[ConfidenceLevel]] = mapped_column(Enum(ConfidenceLevel, name="confidence_level"), nullable=True)
     confidence_explanation: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     approved_by: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
