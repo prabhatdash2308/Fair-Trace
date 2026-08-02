@@ -1,5 +1,7 @@
 import type { AxiosInstance } from 'axios';
 import type { ApiError } from '@/types';
+import { DEMO_MODE } from '@/config/demo';
+import { getDemoDataForUrl } from './mock.data';
 
 /**
  * Error interceptor — normalises all API errors into a consistent ApiError shape.
@@ -53,6 +55,16 @@ export function applyErrorInterceptor(client: AxiosInstance): void {
         console.error('[API Error]:', { status, url, data, rawError: error });
       }
 
+      // DEMO MODE: Never throw runtime exceptions for API failures.
+      // Intercept the error and return realistic mock data.
+      if (DEMO_MODE) {
+        const method = (error as { config?: { method?: string } })?.config?.method?.toLowerCase() || 'get';
+        const mockData = getDemoDataForUrl(url, method);
+        console.warn(`[DEMO MODE] API Failed (${status}) for ${method.toUpperCase()} ${url}. Returning mock data.`);
+        // Resolve the promise to simulate a successful API response
+        return Promise.resolve({ data: mockData, status: 200, statusText: 'OK', headers: {}, config: (error as any).config });
+      }
+
       const normalised: ApiError = {
         status,
         message: errorMessage,
@@ -64,3 +76,4 @@ export function applyErrorInterceptor(client: AxiosInstance): void {
     }
   );
 }
+

@@ -14,6 +14,8 @@ from models.db.bias_flag import BiasFlag
 from models.db.audit_event import AuditEvent
 from models.db.document import Document
 from models.db.document_chunk import DocumentChunk
+from models.db.export import ReportExport
+from models.db.workflow import WorkflowExecution, ApprovalRequest, WorkflowHistory
 
 __all__ = [
     "Base",
@@ -28,4 +30,8 @@ __all__ = [
     "AuditEvent",
     "Document",
     "DocumentChunk",
+    "ReportExport",
+    "WorkflowExecution",
+    "ApprovalRequest",
+    "WorkflowHistory",
 ]

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User, UserRole } from '@/types';
+import { DEMO_MODE, DEMO_USER, DEMO_TOKEN } from '@/config/demo';
 
 export interface AuthUser {
   id: string;
@@ -29,27 +30,44 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
+// ── Demo Mode: pre-hydrate the store so guards never bounce ──────────────────
+const demoInitial = DEMO_MODE
+  ? {
+      token: DEMO_TOKEN,
+      refreshToken: null,
+      expiresAt: null,
+      user: DEMO_USER as AuthUser,
+      isAuthenticated: true,
+      isLoading: false,
+    }
+  : {
       token: null,
       refreshToken: null,
       expiresAt: null,
       user: null,
       isAuthenticated: false,
       isLoading: false,
+    };
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      ...demoInitial,
 
       login: (token, user) =>
         set({ token, user, isAuthenticated: true }),
 
       logout: () =>
-        set({
-          token: null,
-          refreshToken: null,
-          expiresAt: null,
-          user: null,
-          isAuthenticated: false,
-        }),
+        // In demo mode, logout re-seeds the demo user instead of clearing
+        DEMO_MODE
+          ? set({ token: DEMO_TOKEN, user: DEMO_USER as AuthUser, isAuthenticated: true })
+          : set({
+              token: null,
+              refreshToken: null,
+              expiresAt: null,
+              user: null,
+              isAuthenticated: false,
+            }),
 
       setUser: (userUpdate) =>
         set((state) => ({
@@ -61,7 +79,6 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'rg_auth',
       storage: createJSONStorage(() => localStorage),
-      // Persist only what is needed to restore the session
       partialize: (state) => ({
         token: state.token,
         refreshToken: state.refreshToken,
@@ -69,6 +86,11 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
+      // In demo mode, skip reading stale localStorage so demo user is always active
+      merge: (persisted, current) => {
+        if (DEMO_MODE) return current;
+        return { ...current, ...(persisted as Partial<AuthState>) };
+      },
     }
   )
 );

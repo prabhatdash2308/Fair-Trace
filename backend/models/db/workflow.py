@@ -1,6 +1,7 @@
 import uuid
 import datetime
 from sqlalchemy import Column, String, DateTime, Enum as SQLEnum, ForeignKey, JSON, Integer
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from models.db.base import Base
 from enum import Enum
@@ -38,7 +39,7 @@ class WorkflowExecution(Base):
     paused_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
     
-    owner_id = Column(String(36), ForeignKey("users.id"), nullable=False)
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     organization_id = Column(String(36), nullable=True)
     
     checkpoint_id = Column(String(100), nullable=True)
@@ -55,7 +56,7 @@ class ApprovalRequest(Base):
     workflow_id = Column(String(36), ForeignKey("workflow_executions.id"), nullable=False)
     execution_id = Column(String(100), nullable=False)
     report_id = Column(String(100), nullable=True)
-    reviewer_id = Column(String(36), ForeignKey("users.id"), nullable=True)
+    reviewer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     
     status = Column(SQLEnum(ApprovalStatus), default=ApprovalStatus.PENDING, nullable=False)
     decision = Column(String(50), nullable=True)

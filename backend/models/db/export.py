@@ -1,6 +1,7 @@
 import uuid
 import datetime
 from sqlalchemy import Column, String, DateTime, Enum as SQLEnum, ForeignKey, JSON, Integer
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from models.db.base import Base
 from enum import Enum
@@ -31,7 +32,7 @@ class ReportExport(Base):
     checksum = Column(String(256), nullable=True)
     storage_path = Column(String(500), nullable=True)
     
-    generated_by = Column(String(36), ForeignKey("users.id"), nullable=False)
+    generated_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     generated_at = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)
     
     download_count = Column(Integer, default=0)

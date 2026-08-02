@@ -4,6 +4,7 @@ All middleware, routers, exception handlers, and startup checks are registered h
 No business logic lives in this file.
 """
 
+import traceback
 import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -110,13 +111,24 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    logger.exception("unhandled_exception", error=str(exc))
+    tb = traceback.format_exc()
+    logger.error(
+        "unhandled_exception",
+        error_type=type(exc).__name__,
+        error=str(exc),
+        traceback=tb,
+        path=request.url.path,
+        method=request.method,
+        request_id=getattr(request.state, "correlation_id", None),
+        exc_info=True,
+    )
     return JSONResponse(
         status_code=500,
         content={
             "error": "INTERNAL_ERROR",
             "message": "An unexpected error occurred.",
             "detail": str(exc) if settings.is_development else None,
+            "traceback": tb if settings.is_development else None,
             "request_id": getattr(request.state, "correlation_id", None),
         },
     )

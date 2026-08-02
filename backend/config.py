@@ -4,9 +4,11 @@ Reads all settings from environment variables via Pydantic BaseSettings.
 Fails fast on startup if required variables are missing.
 """
 
+import json
 from functools import lru_cache
 from typing import List
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,6 +24,28 @@ class Settings(BaseSettings):
     app_version: str = "1.0.0"
     environment: str = "development"
     cors_origins: List[str] = ["http://localhost:5173", "http://localhost:3000"]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """
+        Accepts three formats from environment variables:
+          1. Already a list  (when loaded from .env natively)
+          2. JSON array string: '["https://foo.com","https://bar.com"]'
+          3. Comma-separated:  'https://foo.com,https://bar.com'
+        This is necessary because Render injects env vars as plain strings.
+        """
+        if isinstance(v, list):
+            return v
+        v = v.strip()
+        if v.startswith("["):
+            try:
+                parsed = json.loads(v)
+                if isinstance(parsed, list):
+                    return [s.strip() for s in parsed]
+            except json.JSONDecodeError:
+                pass
+        return [s.strip() for s in v.split(",") if s.strip()]
 
     # ── Database ───────────────────────────────────────────────────────────────
     database_url: str

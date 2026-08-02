@@ -24,7 +24,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    // In DEMO MODE we never redirect to /login on 401 — backend auth is irrelevant
+    const DEMO_MODE = true; // mirrors config/demo.ts
+    if (!DEMO_MODE && err.response?.status === 401) {
       localStorage.removeItem('rg_token')
       localStorage.removeItem('rg_user')
       window.location.href = '/login'
@@ -32,6 +34,7 @@ api.interceptors.response.use(
     return Promise.reject(err)
   }
 )
+
 
 // ── Types ──────────────────────────────────────────────────────────
 export type UserRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE'

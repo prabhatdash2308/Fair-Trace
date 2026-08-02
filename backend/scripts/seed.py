@@ -4,7 +4,6 @@ import uuid
 from datetime import datetime, timedelta
 import random
 
-# Add backend directory to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from core.database import SessionLocal, engine
@@ -13,28 +12,46 @@ from models.db.user import User
 from models.db.review_cycle import ReviewCycle
 from models.db.review_input import ReviewInput
 from models.db.document import Document
+from models.db.document_chunk import DocumentChunk
 from models.db.report import Report
-from core.security import hash_password
-from models.enums import UserRole, ReviewCycleStatus, InputType, DocumentStatus, ReportStatus
-
 from models.db.audit_event import AuditEvent
+from models.db.bias_flag import BiasFlag
+from models.db.performance_claim import PerformanceClaim
+from models.db.evidence_citation import EvidenceCitation
+from models.db.export import ReportExport
+from models.db.workflow import WorkflowExecution, ApprovalRequest, WorkflowHistory
+from core.security import hash_password
+from models.enums import (
+    UserRole, ReviewCycleStatus, InputType, DocumentStatus, ReportStatus, 
+    PerformanceDimension, ConfidenceLevel, BiasType, Severity, AuditEventType
+)
 
 def seed_db():
     print("Starting database seeding...")
     db = SessionLocal()
     
     try:
-        # Create tables if not exist
+        # Create tables if they do not exist
         Base.metadata.create_all(bind=engine)
 
-        # Clear existing data
-        db.query(AuditEvent).delete()
+        # Clear existing data in reverse dependency order
+        print("Clearing old data...")
+        db.query(WorkflowHistory).delete()
+        db.query(ApprovalRequest).delete()
+        db.query(ReportExport).delete()
+        db.query(WorkflowExecution).delete()
+        db.query(BiasFlag).delete()
+        db.query(EvidenceCitation).delete()
+        db.query(PerformanceClaim).delete()
         db.query(Report).delete()
+        db.query(DocumentChunk).delete()
         db.query(Document).delete()
         db.query(ReviewInput).delete()
         db.query(ReviewCycle).delete()
+        db.query(AuditEvent).delete()
         db.query(User).delete()
         db.commit()
+        print("Old data cleared.")
 
         # 1 Admin
         admin = User(
@@ -49,11 +66,11 @@ def seed_db():
 
         # 2 Managers
         managers = []
-        for i in range(2):
+        for i in range(1, 3):
             manager = User(
-                email=f"manager{i+1}@reviewguard.ai",
+                email=f"manager{i}@reviewguard.ai",
                 password_hash=hash_password("manager123"),
-                full_name=f"Manager {i+1}",
+                full_name=f"Manager {i}",
                 role=UserRole.MANAGER,
                 is_active=True
             )
@@ -63,12 +80,12 @@ def seed_db():
 
         # 15 Employees
         employees = []
-        for i in range(15):
+        for i in range(1, 16):
             manager = managers[i % 2]
             employee = User(
-                email=f"employee{i+1}@reviewguard.ai",
+                email=f"employee{i}@reviewguard.ai",
                 password_hash=hash_password("employee123"),
-                full_name=f"Employee {i+1}",
+                full_name=f"Employee {i}",
                 role=UserRole.EMPLOYEE,
                 manager_id=manager.id,
                 is_active=True
@@ -77,71 +94,126 @@ def seed_db():
             employees.append(employee)
         db.commit()
 
-        # 5 Review Cycles
-        cycles = []
-        statuses = [ReviewCycleStatus.COMPLETED, ReviewCycleStatus.ACTIVE, ReviewCycleStatus.COMPLETED, ReviewCycleStatus.PROCESSING, ReviewCycleStatus.DRAFT]
-        for i in range(5):
-            employee = random.choice(employees)
+        print(f"Created Admin, {len(managers)} Managers, {len(employees)} Employees.")
+
+        # Review Cycles, Inputs, Documents, Reports, etc.
+        cycle_statuses = [ReviewCycleStatus.COMPLETED, ReviewCycleStatus.ACTIVE, ReviewCycleStatus.PROCESSING, ReviewCycleStatus.DRAFT, ReviewCycleStatus.PENDING_APPROVAL]
+        
+        for i, employee in enumerate(employees):
+            status = cycle_statuses[i % len(cycle_statuses)]
+            
             cycle = ReviewCycle(
                 employee_id=employee.id,
                 manager_id=employee.manager_id,
                 created_by=admin.id,
-                title=f"Q{i%4 + 1} 2026 Performance Review - {employee.full_name}",
-                review_period_start=datetime.utcnow() - timedelta(days=90),
+                title=f"2026 Annual Review - {employee.full_name}",
+                review_period_start=datetime.utcnow() - timedelta(days=365),
                 review_period_end=datetime.utcnow(),
-                status=statuses[i]
+                status=status
             )
             db.add(cycle)
-            cycles.append(cycle)
-        db.commit()
+            db.commit()
 
-        # Review Inputs and Documents
-        reports_created = 0
-        for cycle in cycles:
-            if cycle.status == ReviewCycleStatus.COMPLETED:
+            # Audit Event for Cycle Creation
+            audit_event = AuditEvent(
+                event_type=AuditEventType.REVIEW_CYCLE_CREATED,
+                actor_id=admin.id,
+                actor_role=admin.role,
+                resource_type="ReviewCycle",
+                resource_id=cycle.id,
+                event_payload={"title": cycle.title}
+            )
+            db.add(audit_event)
+
+            if status != ReviewCycleStatus.DRAFT:
+                # Document
                 doc = Document(
-                    owner_id=cycle.employee_id,
-                    original_filename=f"self_assessment_{cycle.id}.pdf",
+                    owner_id=employee.id,
+                    original_filename=f"achievements_{employee.id}.pdf",
                     mime_type="application/pdf",
                     extension=".pdf",
                     file_size_bytes=random.randint(100000, 500000),
-                    storage_key=f"uploads/{cycle.employee_id}/{uuid.uuid4()}.pdf",
+                    storage_key=f"uploads/{employee.id}/{uuid.uuid4()}.pdf",
                     checksum=str(uuid.uuid4()),
                     status=DocumentStatus.STORED,
-                    page_count=3,
-                    character_count=5000
+                    page_count=5,
+                    character_count=15000
                 )
                 db.add(doc)
                 db.commit()
 
+                # Review Input
                 rev_input = ReviewInput(
                     review_cycle_id=cycle.id,
+                    submitted_by=employee.id,
                     input_type=InputType.SELF_ASSESSMENT,
-                    content_text="Great year, lots of deliverables.",
-                    submitted_by=cycle.employee_id
+                    content_text="Delivered multiple high-impact features successfully.",
+                    is_anonymized=False
                 )
                 db.add(rev_input)
+                db.commit()
                 
-                # Reports
-                if reports_created < 20:
+                if status in [ReviewCycleStatus.COMPLETED, ReviewCycleStatus.PENDING_APPROVAL]:
+                    report_status = ReportStatus.FINALIZED if status == ReviewCycleStatus.COMPLETED else ReportStatus.PENDING_APPROVAL
+                    
                     report = Report(
                         review_cycle_id=cycle.id,
-                        status=ReportStatus.FINALIZED,
-                        executive_summary="The employee demonstrated excellent performance.",
-                        recommended_actions=["Promote to Senior", "Give a raise"],
+                        status=report_status,
+                        executive_summary="Excellent performance overall with great technical execution.",
+                        recommended_actions=["Promote to next level", "Assign lead role on new project"],
+                        confidence_score=ConfidenceLevel.HIGH,
                         pipeline_run_id=f"run_{uuid.uuid4()}",
-                        approved_by=cycle.manager_id,
-                        approved_at=datetime.utcnow()
+                        approved_by=cycle.manager_id if status == ReviewCycleStatus.COMPLETED else None,
+                        approved_at=datetime.utcnow() if status == ReviewCycleStatus.COMPLETED else None
                     )
                     db.add(report)
-                    reports_created += 1
+                    db.commit()
 
-        db.commit()
-        print(f"Database successfully seeded: 1 Admin, {len(managers)} Managers, {len(employees)} Employees, {len(cycles)} Cycles, and associated Reports.")
+                    # Performance Claim
+                    claim = PerformanceClaim(
+                        report_id=report.id,
+                        dimension=PerformanceDimension.TECHNICAL,
+                        claim_text="Demonstrated strong technical leadership.",
+                        explanation="Consistent delivery of complex architectures.",
+                        confidence=ConfidenceLevel.HIGH,
+                        is_supported=True,
+                        display_order=1
+                    )
+                    db.add(claim)
+                    db.commit()
+
+                    # Evidence Citation
+                    citation = EvidenceCitation(
+                        claim_id=claim.id,
+                        review_input_id=rev_input.id,
+                        extracted_passage="I led the backend rewrite project.",
+                        similarity_score=0.92,
+                        retrieval_rank=1
+                    )
+                    db.add(citation)
+                    
+                    # Bias Flag
+                    if random.random() > 0.7:
+                        bias = BiasFlag(
+                            report_id=report.id,
+                            review_input_id=rev_input.id,
+                            bias_type=BiasType.RECENCY,
+                            severity=Severity.MEDIUM,
+                            affected_text="Has been doing great lately.",
+                            recommended_action="Consider evaluating the entire year.",
+                            detected_by_agent="bias_detector_v1",
+                            detection_reasoning="Focus is solely on the last 2 months."
+                        )
+                        db.add(bias)
+
+                    db.commit()
+
+        print("Database successfully seeded!")
         
     except Exception as e:
         print(f"Error seeding database: {e}")
         db.rollback()
+        raise e
     finally:
         db.close()
 

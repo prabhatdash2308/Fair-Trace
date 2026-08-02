@@ -1,5 +1,8 @@
 """ReviewGuard AI — Auth Router"""
 
+import traceback
+
+import structlog
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
@@ -8,6 +11,9 @@ from models.schemas import LoginRequest, TokenResponse
 from services.auth_service import authenticate_user, create_token_for_user
 from repositories import audit_repo
 from models.enums import AuditEventType
+from core.exceptions import ReviewGuardException
+
+logger = structlog.get_logger(__name__)
 
 router = APIRouter()
 
@@ -23,16 +29,68 @@ router = APIRouter()
     },
 )
 def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
-    user = authenticate_user(db, body.email, body.password)
-    audit_repo.create(db, {
-        "event_type": AuditEventType.USER_LOGIN,
-        "actor_id": user.id,
-        "actor_role": user.role,
-        "resource_type": "user",
-        "resource_id": user.id,
-        "event_payload": {"email": user.email},
-        "ip_address": request.client.host if request.client else None,
-        "correlation_id": getattr(request.state, "correlation_id", None),
-    })
-    db.commit()
-    return create_token_for_user(user)
+    request_id = getattr(request.state, "correlation_id", None)
+    ip = request.client.host if request.client else None
+
+    logger.info("login_attempt", email=body.email, ip=ip, request_id=request_id)
+
+    try:
+        user = authenticate_user(db, body.email, body.password)
+    except ReviewGuardException:
+        # Re-raise domain exceptions (401 AuthenticationFailedError) — handled by app-level handler
+        raise
+    except Exception:
+        tb = traceback.format_exc()
+        logger.error(
+            "login_authenticate_error",
+            email=body.email,
+            traceback=tb,
+            request_id=request_id,
+            exc_info=True,
+        )
+        raise
+
+    try:
+        audit_repo.create(db, {
+            "event_type": AuditEventType.USER_LOGIN,
+            "actor_id": user.id,
+            "actor_role": user.role,
+            "resource_type": "user",
+            "resource_id": user.id,
+            "event_payload": {"email": user.email},
+            "ip_address": ip,
+            "correlation_id": request_id,
+        })
+        db.commit()
+    except Exception:
+        tb = traceback.format_exc()
+        logger.error(
+            "login_audit_error",
+            email=body.email,
+            traceback=tb,
+            request_id=request_id,
+            exc_info=True,
+        )
+        # Audit failure must NOT block login — rollback the audit only, not the session
+        db.rollback()
+
+    try:
+        token_response = create_token_for_user(user)
+        logger.info(
+            "login_success",
+            email=user.email,
+            role=user.role.value,
+            user_id=str(user.id),
+            request_id=request_id,
+        )
+        return token_response
+    except Exception:
+        tb = traceback.format_exc()
+        logger.error(
+            "login_token_creation_error",
+            email=body.email,
+            traceback=tb,
+            request_id=request_id,
+            exc_info=True,
+        )
+        raise
