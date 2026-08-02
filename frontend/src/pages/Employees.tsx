@@ -72,14 +72,14 @@ export function Employees() {
                 <TableRow key={emp.id} className="hover:bg-muted/50 transition-colors">
                   <TableCell>
                     <Link to={`/employees/${emp.id}`} className="block">
-                      <div className="font-medium text-foreground hover:text-brand-blue transition-colors">{emp.name}</div>
+                      <div className="font-medium text-foreground hover:text-primary transition-colors">{emp.name}</div>
                       <div className="text-xs text-muted-foreground">{emp.role}</div>
                     </Link>
                   </TableCell>
                   <TableCell>{emp.dept}</TableCell>
                   <TableCell>{emp.manager}</TableCell>
                   <TableCell className="text-right font-medium">
-                    <span className={emp.score >= 9 ? "text-verified-teal" : emp.score < 8 ? "text-warning-orange" : ""}>
+                    <span className={emp.score >= 9 ? "text-success" : emp.score < 8 ? "text-warning" : ""}>
                       {emp.score}
                     </span>
                   </TableCell>
@@ -107,3 +107,4 @@ export function Employees() {
     </div>
   );
 }
+

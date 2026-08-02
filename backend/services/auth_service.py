@@ -17,8 +17,8 @@ def authenticate_user(db: Session, email: str, password: str) -> User:
     Raises AuthenticationFailedError on any failure (constant-time — no email enumeration).
     """
     user = user_repo.get_by_email(db, email)
-    # Always call verify_password even if user not found (prevents timing attacks)
-    dummy_hash = "$2b$12$XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    # A structurally valid dummy bcrypt hash (cost 12) to prevent passlib from crashing.
+    dummy_hash = "$2b$12$w.yI/K73o8R9l8xP3zOqI.jJ44y6kQ9X54x3W2k3q3M32v7R7v66O"
     pwd_hash = user.password_hash if user else dummy_hash
     valid = verify_password(password, pwd_hash)
 

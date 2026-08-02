@@ -16,7 +16,7 @@ export function Reports() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <BarChart className="mr-2 h-5 w-5 text-brand-blue" />
+              <BarChart className="mr-2 h-5 w-5 text-primary" />
               Department Comparisons
             </CardTitle>
             <CardDescription>Performance score distribution across all departments.</CardDescription>
@@ -31,7 +31,7 @@ export function Reports() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <PieChart className="mr-2 h-5 w-5 text-warning-orange" />
+              <PieChart className="mr-2 h-5 w-5 text-warning" />
               Bias & Fairness Audit
             </CardTitle>
             <CardDescription>AI-generated report on language bias in recent cycles.</CardDescription>
@@ -46,7 +46,7 @@ export function Reports() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <FileText className="mr-2 h-5 w-5 text-verified-teal" />
+              <FileText className="mr-2 h-5 w-5 text-success" />
               Raw Data Export
             </CardTitle>
             <CardDescription>Export all employee performance data for external analysis.</CardDescription>
@@ -61,3 +61,4 @@ export function Reports() {
     </div>
   );
 }
+

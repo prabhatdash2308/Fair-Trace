@@ -1,6 +1,8 @@
-import { Bell, Search, Menu, Moon, Sun } from 'lucide-react';
+import { Bell, Menu, Moon, Sun, Building } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/store';
+import { GlobalSearch } from './GlobalSearch';
+import { Breadcrumbs } from './Breadcrumbs';
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -16,52 +18,64 @@ export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
     : 'RG';
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 z-10 shrink-0">
-      {/* Left: Menu toggle + Search */}
-      <div className="flex items-center flex-1 gap-4">
+    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 z-10 shrink-0">
+      {/* Left: Menu toggle + Breadcrumbs */}
+      <div className="flex items-center gap-3 flex-1 min-w-0">
         <button
           id="sidebar-toggle"
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="text-muted-foreground hover:text-foreground transition-colors"
+          className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
           aria-label="Toggle sidebar"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4 w-4" />
         </button>
+        
+        <div className="h-4 w-px bg-border mx-1 shrink-0" />
 
-        <div className="max-w-md w-full relative hidden sm:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <input
-            id="global-search"
-            type="text"
-            placeholder="Search employees, reviews, or insights..."
-            className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-muted-foreground"
-          />
+        <div className="hidden sm:flex items-center gap-2 truncate">
+          <Breadcrumbs />
         </div>
       </div>
 
-      {/* Right: Theme + Notifications + Avatar */}
-      <div className="flex items-center gap-2">
+      {/* Center: Search (Command Palette) */}
+      <div className="flex-1 flex justify-center max-w-md px-4">
+        <GlobalSearch />
+      </div>
+
+      {/* Right: Theme + Notifications + Workspace + Avatar */}
+      <div className="flex items-center gap-1.5 flex-1 justify-end">
+        
+        <button
+          onClick={() => {}}
+          className="hidden md:flex items-center gap-2 px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-md transition-colors"
+        >
+          <Building className="h-4 w-4" />
+          <span className="font-medium truncate max-w-[100px]">Acme Corp</span>
+        </button>
+
+        <div className="h-4 w-px bg-border mx-1 hidden md:block shrink-0" />
+
         <button
           id="theme-toggle"
           onClick={toggleTheme}
-          className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors"
+          className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
           aria-label="Toggle theme"
         >
-          {resolvedTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
 
         <button
           id="notifications-btn"
-          className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors relative"
+          className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors relative"
           aria-label="Notifications"
         >
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-2 right-2 h-2 w-2 bg-destructive rounded-full ring-2 ring-card" />
+          <Bell className="h-4 w-4" />
+          <span className="absolute top-1 right-1 h-1.5 w-1.5 bg-destructive rounded-full" />
         </button>
 
         <div
           id="user-avatar"
-          className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm select-none cursor-pointer"
+          className="h-7 w-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-semibold text-xs select-none cursor-pointer ml-2 shrink-0"
           title={user?.full_name ?? 'User'}
         >
           {initials}

@@ -6,9 +6,13 @@ export const ROUTES = {
   // Public
   ROOT: '/',
   LOGIN: '/login',
+  FORGOT_PASSWORD: '/forgot-password',
 
-  // App (protected)
-  DASHBOARD: '/dashboard',
+  // Dashboard — role-specific workspaces
+  DASHBOARD:          '/dashboard',           // Redirects to role workspace
+  DASHBOARD_ADMIN:    '/dashboard/admin',
+  DASHBOARD_MANAGER:  '/dashboard/manager',
+  DASHBOARD_EMPLOYEE: '/dashboard/employee',
 
   // Employees
   EMPLOYEES: '/employees',
@@ -31,6 +35,8 @@ export const ROUTES = {
   REPORTS: '/reports',
   REPORT_DETAIL: '/reports/:id',
   reportDetail: (id: string) => `/reports/${id}`,
+  EXPLAINABILITY: '/explainability/:reportId',
+  explainability: (reportId: string) => `/explainability/${reportId}`,
 
   // Approvals
   APPROVALS: '/approvals',
@@ -40,4 +46,17 @@ export const ROUTES = {
 
   // Settings
   SETTINGS: '/settings',
+
+  // Unauthorized
+  UNAUTHORIZED: '/unauthorized',
 } as const;
+
+/** Returns the role-specific dashboard route for a given role string. */
+export function roleDashboardRoute(role: string | undefined): string {
+  switch (role) {
+    case 'ADMIN':    return ROUTES.DASHBOARD_ADMIN;
+    case 'MANAGER':  return ROUTES.DASHBOARD_MANAGER;
+    case 'EMPLOYEE': return ROUTES.DASHBOARD_EMPLOYEE;
+    default:         return ROUTES.LOGIN;
+  }
+}

@@ -8,15 +8,18 @@
 /* ── CSS Design Tokens ───────────────────────────────────────────────── */
 @layer base {
   :root {
-    /* Background */
+    /* Background / Surface */
     --background: 210 33% 98%;
     --foreground: 222 47% 11%;
+    
+    --surface: 210 33% 98%;
+    --surface-secondary: 210 40% 96%;
 
-    /* Card */
+    /* Card (aliases surface) */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
-    /* Popover */
+    /* Popover (aliases surface) */
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
@@ -36,9 +39,11 @@
     --accent: 210 40% 96%;
     --accent-foreground: 222 47% 11%;
 
-    /* Destructive — Rose */
+    /* Destructive — Rose (Danger) */
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
+    --danger: 0 84% 60%;
+    --danger-foreground: 210 40% 98%;
 
     /* Success — Emerald */
     --success: 160 84% 39%;
@@ -58,9 +63,12 @@
   }
 
   .dark {
-    /* Background */
+    /* Background / Surface */
     --background: 222 47% 7%;
     --foreground: 210 40% 98%;
+
+    --surface: 222 47% 7%;
+    --surface-secondary: 217 33% 17%;
 
     /* Card */
     --card: 222 40% 11%;
@@ -86,9 +94,11 @@
     --accent: 217 33% 17%;
     --accent-foreground: 210 40% 98%;
 
-    /* Destructive */
+    /* Destructive (Danger) */
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
+    --danger: 0 63% 31%;
+    --danger-foreground: 210 40% 98%;
 
     /* Success */
     --success: 160 84% 29%;
@@ -128,6 +138,18 @@
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
+  /* Accessibility: Prefers Reduced Motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   /* Scrollbar — subtle dark mode scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
@@ -163,5 +185,37 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Hero section: dark radial spotlight */
+  .hero-gradient {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(221 83% 53% / 0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 20%, hsl(221 83% 53% / 0.08) 0%, transparent 50%),
+      hsl(var(--background));
+  }
+
+  /* Per-section subtle mesh texture */
+  .section-mesh {
+    background-image: 
+      radial-gradient(hsl(var(--border)) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* Pipeline node pulse animation */
+  .pipeline-pulse {
+    animation: pipeline-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pipeline-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+    50%       { box-shadow: 0 0 0 4px hsl(var(--primary) / 0.12); }
+  }
+
+  /* Enterprise glass surface */
+  .glass-surface {
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 }

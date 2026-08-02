@@ -1,7 +1,7 @@
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordField } from './PasswordField';
@@ -9,19 +9,10 @@ import { RememberMe } from './RememberMe';
 import { loginSchema } from '../schemas/login.schema';
 import type { LoginSchema } from '../schemas/login.schema';
 import { useLogin } from '../hooks/useLogin';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { ROUTES } from '@/constants/routes';
 
-/**
- * LoginForm — production-quality form with:
- *  - React Hook Form + Zod validation
- *  - Real-time field errors
- *  - Show/hide password
- *  - Remember Me
- *  - Loading spinner
- *  - API error alert
- *  - Enter key submits
- *  - Full a11y (labels, aria, focus management)
- */
 export function LoginForm() {
   const { login, isLoading, error, isError, reset } = useLogin();
 
@@ -48,7 +39,7 @@ export function LoginForm() {
       onSubmit={handleSubmit(onSubmit)}
       noValidate
       aria-label="Sign in form"
-      className="space-y-5"
+      className="space-y-4 w-full"
     >
       {/* ── API Error Alert ── */}
       {isError && error && (
@@ -80,11 +71,11 @@ export function LoginForm() {
           aria-describedby={errors.email ? 'email-error' : undefined}
           aria-invalid={!!errors.email}
           disabled={isLoading}
-          className={cn(errors.email && 'border-destructive focus-visible:ring-destructive')}
+          className={cn('h-11', errors.email && 'border-destructive focus-visible:ring-destructive')}
           {...register('email')}
         />
         {errors.email && (
-          <p id="email-error" role="alert" className="text-xs text-destructive">
+          <p id="email-error" role="alert" className="text-[13px] text-destructive">
             {errors.email.message}
           </p>
         )}
@@ -101,47 +92,49 @@ export function LoginForm() {
           placeholder="••••••••"
           error={errors.password?.message}
           disabled={isLoading}
+          className="h-11"
           {...register('password')}
         />
         {errors.password && (
-          <p id="password-error" role="alert" className="text-xs text-destructive">
+          <p id="password-error" role="alert" className="text-[13px] text-destructive">
             {errors.password.message}
           </p>
         )}
       </div>
 
       {/* ── Remember Me + Forgot Password ── */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-1 pb-1">
         <RememberMe
           id="remember-me"
           disabled={isLoading}
           {...register('rememberMe')}
         />
-        <button
-          type="button"
-          className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
-          onClick={() => {
-            // Forgot password placeholder — Phase 3
-            alert('Password reset will be implemented in Phase 3.');
-          }}
+        <Link
+          to={ROUTES.FORGOT_PASSWORD}
+          className="text-[13px] text-primary hover:text-primary/80 transition-colors font-semibold"
         >
           Forgot password?
-        </button>
+        </Link>
       </div>
 
       {/* ── Submit Button ── */}
       <Button
         id="login-submit"
         type="submit"
-        className="w-full h-11 text-sm font-medium"
+        className={cn(
+          "w-full h-11 text-[15px] font-semibold transition-all duration-100",
+          "bg-gradient-to-b from-primary/90 to-primary shadow-[0_1px_2px_rgba(0,0,0,0.1),0_0_0_1px_rgba(var(--primary),0.5)_inset]",
+          "hover:shadow-[0_4px_12px_rgba(var(--primary),0.25),0_0_0_1px_rgba(var(--primary),0.8)_inset] hover:-translate-y-[0.5px]",
+          "active:shadow-none active:translate-y-[0.5px]"
+        )}
         disabled={isLoading}
         aria-disabled={isLoading}
       >
         {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-            Signing in…
-          </>
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin opacity-70" aria-hidden="true" />
+            Signing in...
+          </div>
         ) : (
           'Sign in securely'
         )}

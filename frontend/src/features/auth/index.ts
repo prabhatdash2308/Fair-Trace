@@ -8,6 +8,8 @@ export { LoginCard } from './components/LoginCard';
 export { LoginForm } from './components/LoginForm';
 export { PasswordField } from './components/PasswordField';
 export { RememberMe } from './components/RememberMe';
+export { RoleSelector } from './components/RoleSelector';
+export { DemoCredentials } from './components/DemoCredentials';
 
 // Hooks
 export { useLogin } from './hooks/useLogin';

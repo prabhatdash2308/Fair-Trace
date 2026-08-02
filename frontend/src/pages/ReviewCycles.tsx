@@ -83,7 +83,7 @@ export function ReviewCycles() {
                     <div className="flex items-center gap-2">
                       <div className="w-full bg-muted rounded-full h-2 max-w-[100px]">
                         <div 
-                          className={`h-2 rounded-full ${cycle.status === 'Completed' ? 'bg-verified-teal' : 'bg-brand-blue'}`} 
+                          className={`h-2 rounded-full ${cycle.status === 'Completed' ? 'bg-success' : 'bg-primary'}`} 
                           style={{ width: `${cycle.progress}%` }}
                         ></div>
                       </div>
@@ -103,3 +103,4 @@ export function ReviewCycles() {
     </div>
   );
 }
+

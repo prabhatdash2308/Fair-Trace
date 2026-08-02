@@ -11,9 +11,9 @@ export function AIInsights() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-2 border-brand-blue/20 bg-brand-blue/5">
+        <Card className="md:col-span-2 border-primary/20 bg-primary/5">
           <CardHeader>
-            <CardTitle className="flex items-center text-brand-blue">
+            <CardTitle className="flex items-center text-primary">
               <BrainCircuit className="mr-2 h-5 w-5" />
               Primary Recommendation
             </CardTitle>
@@ -35,14 +35,14 @@ export function AIInsights() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <AlertTriangle className="mr-2 h-5 w-5 text-warning-orange" />
+              <AlertTriangle className="mr-2 h-5 w-5 text-warning" />
               Bias Detection
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-3 border border-border rounded-lg">
               <p className="text-sm font-medium mb-1">Gendered Language Flag</p>
-              <p className="text-xs text-muted-foreground">Detected in 4% of Sales department reviews. <a href="#" className="text-brand-blue hover:underline">View report</a></p>
+              <p className="text-xs text-muted-foreground">Detected in 4% of Sales department reviews. <a href="#" className="text-primary hover:underline">View report</a></p>
             </div>
             <div className="p-3 border border-border rounded-lg">
               <p className="text-sm font-medium mb-1">Recency Bias Warning</p>
@@ -57,7 +57,7 @@ export function AIInsights() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Lightbulb className="mr-2 h-5 w-5 text-verified-teal" />
+              <Lightbulb className="mr-2 h-5 w-5 text-success" />
               Emerging Leaders
             </CardTitle>
             <CardDescription>Identified based on peer feedback sentiment analysis.</CardDescription>
@@ -77,7 +77,7 @@ export function AIInsights() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <TrendingDown className="mr-2 h-5 w-5 text-danger-red" />
+              <TrendingDown className="mr-2 h-5 w-5 text-danger" />
               Burnout Indicators
             </CardTitle>
             <CardDescription>Teams showing linguistic markers of high stress.</CardDescription>
@@ -85,8 +85,8 @@ export function AIInsights() {
           <CardContent>
              <div className="space-y-3">
               {['Customer Support', 'DevOps'].map((dept, i) => (
-                <div key={i} className="flex justify-between items-center p-2 border-l-2 border-danger-red bg-danger-red/5 rounded-r-md transition-colors">
-                  <span className="font-medium text-danger-red">{dept}</span>
+                <div key={i} className="flex justify-between items-center p-2 border-l-2 border-danger bg-danger/5 rounded-r-md transition-colors">
+                  <span className="font-medium text-danger">{dept}</span>
                   <span className="text-muted-foreground text-sm">Action required</span>
                 </div>
               ))}
@@ -97,3 +97,4 @@ export function AIInsights() {
     </div>
   );
 }
+

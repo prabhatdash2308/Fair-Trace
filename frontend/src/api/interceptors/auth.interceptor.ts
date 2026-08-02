@@ -1,15 +1,15 @@
 import type { AxiosInstance } from 'axios';
 
-const TOKEN_KEY = 'rg_token';
+import { useAuthStore } from '@/store/auth/auth.store';
 
 /**
  * Auth interceptor — injects the Bearer token on every request.
  * On 401 response, clears storage and redirects to login.
  */
 export function applyAuthInterceptor(client: AxiosInstance): void {
-  // Request: inject token
+  // Request: inject token from Zustand
   client.interceptors.request.use((config) => {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = useAuthStore.getState().token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -22,8 +22,15 @@ export function applyAuthInterceptor(client: AxiosInstance): void {
     (error: unknown) => {
       const status = (error as { response?: { status?: number } })?.response?.status;
       if (status === 401) {
-        localStorage.removeItem(TOKEN_KEY);
+        // Use the auth store's logout to ensure synchronous state update
+        useAuthStore.getState().logout();
+        
+        // Also clear any legacy manual tokens just in case
+        localStorage.removeItem('rg_token');
+        localStorage.removeItem('rg_refresh_token');
+        localStorage.removeItem('rg_remember');
         localStorage.removeItem('rg_user');
+        
         window.location.href = '/login';
       }
       return Promise.reject(error);

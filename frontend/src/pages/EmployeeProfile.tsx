@@ -35,7 +35,7 @@ export function EmployeeProfile() {
             </div>
             <div className="flex justify-between items-center pb-2 border-b border-border">
               <span className="text-muted-foreground text-sm">Current Score</span>
-              <span className="font-bold text-verified-teal">9.2/10</span>
+              <span className="font-bold text-success">9.2/10</span>
             </div>
             <div className="flex justify-between items-center pb-2 border-b border-border">
               <span className="text-muted-foreground text-sm">Promotion Readiness</span>
@@ -54,13 +54,13 @@ export function EmployeeProfile() {
               <CardTitle>AI Performance Insights</CardTitle>
               <CardDescription>Synthesized from 360° feedback and metrics.</CardDescription>
             </div>
-            <Brain className="h-5 w-5 text-brand-blue" />
+            <Brain className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="space-y-4 mt-4">
               <div className="p-4 bg-muted/30 rounded-lg border border-border">
                 <h4 className="font-medium text-sm flex items-center mb-2">
-                  <TrendingUp className="mr-2 h-4 w-4 text-verified-teal" /> 
+                  <TrendingUp className="mr-2 h-4 w-4 text-success" /> 
                   Key Strengths
                 </h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -69,7 +69,7 @@ export function EmployeeProfile() {
               </div>
               <div className="p-4 bg-muted/30 rounded-lg border border-border">
                 <h4 className="font-medium text-sm flex items-center mb-2">
-                  <Target className="mr-2 h-4 w-4 text-brand-blue" /> 
+                  <Target className="mr-2 h-4 w-4 text-primary" /> 
                   Areas for Growth
                 </h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -116,3 +116,4 @@ export function EmployeeProfile() {
     </div>
   );
 }
+

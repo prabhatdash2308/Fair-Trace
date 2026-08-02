@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import { Breadcrumbs } from './Breadcrumbs';
+
 
 /**
  * AppLayout — the authenticated application shell.
@@ -39,9 +39,6 @@ export function AppLayout() {
             tabIndex={-1}
           >
             <div className="max-w-7xl mx-auto px-6 py-6">
-              {/* Breadcrumbs */}
-              <Breadcrumbs />
-
               {/* Page outlet */}
               <Outlet />
             </div>

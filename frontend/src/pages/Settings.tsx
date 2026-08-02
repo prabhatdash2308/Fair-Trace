@@ -47,9 +47,9 @@ export function Settings() {
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center justify-between">
                   <span>Bias Detection Sensitivity</span>
-                  <span className="text-brand-blue">High</span>
+                  <span className="text-primary">High</span>
                 </label>
-                <input type="range" className="w-full accent-brand-blue" min="1" max="3" defaultValue="3" />
+                <input type="range" className="w-full accent-primary" min="1" max="3" defaultValue="3" />
               </div>
               <div className="pt-4">
                 <Button variant="outline">Reset to Defaults</Button>
@@ -61,3 +61,4 @@ export function Settings() {
     </div>
   );
 }
+

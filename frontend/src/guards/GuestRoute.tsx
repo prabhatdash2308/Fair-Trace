@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store';
 import { ROUTES } from '@/constants/routes';
 import type { ReactNode } from 'react';
@@ -14,8 +14,11 @@ interface GuestRouteProps {
 export function GuestRoute({ children }: GuestRouteProps) {
   const { isAuthenticated } = useAuthStore();
 
+  const location = useLocation();
+  const from = (location.state as any)?.from?.pathname || ROUTES.DASHBOARD;
+
   if (isAuthenticated) {
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
+    return <Navigate to={from} replace />;
   }
 
   return <>{children}</>;
