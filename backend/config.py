@@ -93,10 +93,77 @@ class Settings(BaseSettings):
     hybrid_search_enabled: bool = False
     rerank_enabled: bool = False
 
+    # ── LangGraph Settings ─────────────────────────────────────────────────────
+    graph_timeout_seconds: int = 300
+    graph_max_retries: int = 3
+    graph_checkpoint_provider: str = "memory"
+    graph_enable_events: bool = True
+    graph_enable_telemetry: bool = True
+    graph_enable_interrupts: bool = True
+    graph_enable_checkpoints: bool = True
+    graph_max_node_execution_seconds: int = 60
+
     # ── Circuit Breaker ────────────────────────────────────────────────────────
     circuit_breaker_failure_threshold: int = 3
     circuit_breaker_window_seconds: int = 60
     circuit_breaker_reset_timeout: int = 30
+
+    # Phase 11.7: Performance Agent
+    PERFORMANCE_AGENT_MODEL: str = "gpt-4o"
+    PERFORMANCE_AGENT_TIMEOUT: int = 30
+    PERFORMANCE_AGENT_MAX_RETRIES: int = 1
+    PERFORMANCE_AGENT_TEMPERATURE: float = 0.0
+    PERFORMANCE_AGENT_MAX_TOKENS: int = 2000
+    PERFORMANCE_PROMPT_VERSION: str = "1.0"
+    
+    # Phase 11.8: Bias Agent
+    BIAS_AGENT_MODEL: str = "gpt-4o"
+    BIAS_AGENT_TIMEOUT: int = 30
+    BIAS_AGENT_MAX_RETRIES: int = 2
+    BIAS_AGENT_MAX_TOKENS: int = 1500
+    BIAS_AGENT_TEMPERATURE: float = 0.0
+    BIAS_PROMPT_VERSION: str = "1.0"
+    BIAS_THRESHOLD_HIGH: float = 0.75
+    BIAS_THRESHOLD_MEDIUM: float = 0.50
+    
+    # Phase 11.9: Explainability Agent
+    EXPLAINABILITY_AGENT_MODEL: str = "gpt-4o"
+    EXPLAINABILITY_AGENT_TIMEOUT: int = 30
+    EXPLAINABILITY_AGENT_MAX_RETRIES: int = 2
+    EXPLAINABILITY_AGENT_TEMPERATURE: float = 0.0
+    EXPLAINABILITY_AGENT_MAX_TOKENS: int = 2500
+    EXPLAINABILITY_PROMPT_VERSION: str = "1.0"
+    MAX_REASONING_STEPS: int = 25
+    MAX_EVIDENCE_PER_FINDING: int = 10
+
+    # Phase 11.10: Report Generation Agent
+    REPORT_AGENT_MODEL: str = "gpt-4o"
+    REPORT_AGENT_TIMEOUT: int = 45
+    REPORT_AGENT_MAX_RETRIES: int = 2
+    REPORT_AGENT_TEMPERATURE: float = 0.1
+    REPORT_AGENT_MAX_TOKENS: int = 3500
+    REPORT_PROMPT_VERSION: str = "1.0"
+    MAX_REPORT_LENGTH: int = 12000
+    REPORT_SCHEMA_VERSION: str = "1.0"
+
+    # Phase 11.11: Human Approval Workflow
+    GRAPH_APPROVAL_TIMEOUT: str = "72h"
+    APPROVAL_REQUIRED: bool = True
+    MAX_APPROVAL_RETRIES: int = 3
+    ENABLE_WORKFLOW_HISTORY: bool = True
+    ENABLE_AUDIT_LOG: bool = True
+    ENABLE_REVIEW_NOTIFICATIONS: bool = True
+
+    # Phase 11.12: Export Engine
+    EXPORT_PROVIDER: str = "pdf"
+    REPORT_TEMPLATE: str = "enterprise_v1"
+    PDF_PAGE_SIZE: str = "A4"
+    PDF_MARGIN_MM: int = 15
+    PDF_ENABLE_DIGITAL_SIGNATURE: bool = True
+    PDF_ENABLE_WATERMARK: bool = False
+    PDF_FONT: str = "DejaVu Sans"
+    PDF_TIMEZONE: str = "UTC"
+    EXPORT_DIRECTORY: str = "exports/"
 
     @property
     def is_development(self) -> bool:

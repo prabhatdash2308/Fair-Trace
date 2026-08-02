@@ -37,7 +37,7 @@ export const ReportMetadata: React.FC<{ report: Report }> = ({ report }) => {
         </div>
         
         <ReportStatus status={report.status} />
-        <ReportExportButton />
+        <ReportExportButton reportId={report.id} />
       </div>
     </div>
   );

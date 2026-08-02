@@ -1,39 +1,52 @@
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { MetricCardProps } from '@/types/ui.types';
 
-const VARIANT_STYLES = {
-  default: 'border-border',
-  success: 'border-emerald-500/30',
-  warning: 'border-amber-500/30',
-  danger: 'border-rose-500/30',
-  info: 'border-blue-500/30',
-};
+interface MetricTrend {
+  direction: 'up' | 'down' | 'neutral';
+  value: number;
+  label?: string;
+}
 
-const ICON_BG = {
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  description?: string;
+  icon?: React.ElementType;
+  trend?: MetricTrend;
+  variant?: 'default' | 'success' | 'warning' | 'danger' | 'info';
+  loading?: boolean;
+  className?: string;
+}
+
+const ACCENT_BORDER = {
+  default: 'border-t-primary/40',
+  success: 'border-t-success/40',
+  warning: 'border-t-warning/40',
+  danger:  'border-t-danger/40',
+  info:    'border-t-info/40',
+} as const;
+
+const ICON_STYLE = {
   default: 'bg-primary/10 text-primary',
-  success: 'bg-emerald-500/10 text-emerald-500',
-  warning: 'bg-amber-500/10 text-amber-500',
-  danger: 'bg-rose-500/10 text-rose-500',
-  info: 'bg-blue-500/10 text-blue-500',
-};
+  success: 'bg-success/10 text-success',
+  warning: 'bg-warning/10 text-warning',
+  danger:  'bg-danger/10 text-danger',
+  info:    'bg-info/10 text-info',
+} as const;
 
-const TREND_ICON = {
-  up: TrendingUp,
-  down: TrendingDown,
-  neutral: Minus,
-};
-
-const TREND_COLOUR = {
-  up: 'text-emerald-500',
-  down: 'text-rose-500',
-  neutral: 'text-muted-foreground',
-};
+const TREND_CONFIG = {
+  up:      { Icon: TrendingUp,   color: 'text-success' },
+  down:    { Icon: TrendingDown, color: 'text-danger'  },
+  neutral: { Icon: Minus,        color: 'text-muted-foreground' },
+} as const;
 
 /**
- * MetricCard — KPI display card with icon, value, optional trend.
- * Standard card for all dashboard metric grids.
+ * MetricCard — KPI display. Enterprise standard.
+ * Uses semantic number tokens for values.
+ * Subtle top border accent indicates metric type.
+ * Trend indicators using semantic colors.
+ * max 1px hover elevation per motion spec.
  */
 export function MetricCard({
   title,
@@ -45,47 +58,73 @@ export function MetricCard({
   loading = false,
   className,
 }: MetricCardProps) {
+  // Loading skeleton
   if (loading) {
     return (
-      <div className={cn('rounded-xl border border-border bg-card p-6 animate-pulse', className)}>
-        <div className="h-4 w-24 bg-muted rounded mb-4" />
-        <div className="h-8 w-16 bg-muted rounded mb-2" />
-        <div className="h-3 w-32 bg-muted rounded" />
+      <div className={cn(
+        'rounded-lg border border-border bg-card p-6',
+        'shadow-card space-y-3',
+        className
+      )}>
+        <div className="flex items-center justify-between">
+          <div className="h-3 w-20 rounded-md animate-shimmer" />
+          <div className="h-8 w-8 rounded-lg animate-shimmer shrink-0" />
+        </div>
+        <div className="h-8 w-16 rounded-md animate-shimmer" />
+        <div className="h-2.5 w-28 rounded-md animate-shimmer" />
       </div>
     );
   }
 
-  const TrendIcon = trend ? TREND_ICON[trend.direction] : null;
+  const TrendMeta = trend ? TREND_CONFIG[trend.direction] : null;
 
   return (
     <motion.div
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.2 }}
+      whileHover={{ y: -1 }}
+      transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
       className={cn(
-        'rounded-xl border bg-card p-6 transition-shadow hover:shadow-md',
-        VARIANT_STYLES[variant],
+        'rounded-lg border border-border border-t-2 bg-card text-card-foreground',
+        'shadow-card p-6',
+        'transition-shadow duration-[160ms]',
+        'hover:shadow-md',
+        ACCENT_BORDER[variant],
         className
       )}
     >
-      <div className="flex items-start justify-between">
-        <div className="space-y-1 flex-1 min-w-0">
-          <p className="text-sm font-medium text-muted-foreground truncate">{title}</p>
-          <p className="text-2xl font-bold text-foreground tabular-nums">{value}</p>
+      <div className="flex items-start justify-between gap-3">
+        {/* Content */}
+        <div className="flex-1 min-w-0 space-y-1">
+          <p className="text-overline text-muted-foreground uppercase tracking-widest truncate">
+            {title}
+          </p>
+          <p className="text-number-xl tabular-nums leading-none text-foreground">
+            {value}
+          </p>
+
           {description && (
-            <p className="text-xs text-muted-foreground truncate">{description}</p>
+            <p className="text-caption text-muted-foreground truncate">{description}</p>
           )}
-          {trend && TrendIcon && (
-            <div className={cn('flex items-center gap-1 text-xs font-medium', TREND_COLOUR[trend.direction])}>
-              <TrendIcon className="h-3.5 w-3.5" />
-              <span>{trend.value > 0 ? '+' : ''}{trend.value}%</span>
-              {trend.label && <span className="text-muted-foreground font-normal">{trend.label}</span>}
+
+          {trend && TrendMeta && (
+            <div className={cn('flex items-center gap-1 text-caption font-medium pt-0.5', TrendMeta.color)}>
+              <TrendMeta.Icon className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                {trend.value > 0 ? '+' : ''}{trend.value}%
+              </span>
+              {trend.label && (
+                <span className="text-muted-foreground font-normal">{trend.label}</span>
+              )}
             </div>
           )}
         </div>
 
+        {/* Icon */}
         {Icon && (
-          <div className={cn('p-2.5 rounded-lg ml-4 shrink-0', ICON_BG[variant])}>
-            <Icon className="h-5 w-5" />
+          <div className={cn(
+            'p-2 rounded-lg shrink-0',
+            ICON_STYLE[variant]
+          )}>
+            <Icon className="h-4 w-4" aria-hidden="true" />
           </div>
         )}
       </div>

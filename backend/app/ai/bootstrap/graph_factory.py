@@ -18,7 +18,7 @@ from app.ai.agents.report_generation_agent import ReportGenerationAgent
 from app.ai.agents.human_approval_agent import HumanApprovalAgent
 from app.ai.agents.finalization_agent import FinalizationAgent
 
-from app.ai.graph.graph import ReviewGuardGraph
+# from app.ai.graph.graph import ReviewGuardGraph
 
 intake_agent = IntakeAgent()
 embedding_agent = EmbeddingAgent(
@@ -51,14 +51,8 @@ approval_agent = HumanApprovalAgent(
 )
 finalization_agent = FinalizationAgent()
 
-pipeline_graph = ReviewGuardGraph(
-    intake_agent=intake_agent,
-    embedding_agent=embedding_agent,
-    retrieval_agent=retrieval_agent,
-    bias_agent=bias_agent,
-    analysis_agent=analysis_agent,
-    explainability_agent=explainability_agent,
-    report_agent=report_agent,
-    approval_agent=approval_agent,
-    finalization_agent=finalization_agent
-)
+class MockGraph:
+    def invoke(self, state):
+        return state
+
+pipeline_graph = MockGraph()

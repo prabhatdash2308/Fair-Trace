@@ -46,6 +46,28 @@ export const ReportApprovalStatus: React.FC<{ report: Report }> = ({ report }) =
       <h2 className="text-2xl font-semibold tracking-tight">Approval History</h2>
       <div className="p-6 rounded-lg border border-border/50 bg-card max-w-4xl">
         <Timeline events={events} />
+        {isPending && (
+          <div className="mt-6 pt-6 border-t border-border/50 flex gap-4">
+            <button
+              className="btn btn-primary bg-primary text-primary-foreground px-4 py-2 rounded font-medium"
+              onClick={async () => {
+                const { reportApi } = await import('@/features/reports/api/report.api');
+                try {
+                  await reportApi.approve(report.id, {
+                    action: 'APPROVE',
+                    reason: 'Approved via dashboard',
+                    idempotency_key: crypto.randomUUID()
+                  });
+                  window.location.reload();
+                } catch (err) {
+                  alert('Approval failed');
+                }
+              }}
+            >
+              Approve Report
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

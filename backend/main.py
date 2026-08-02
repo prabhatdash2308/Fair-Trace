@@ -27,6 +27,13 @@ from routers.auth import router as auth_router
 from routers.uploads import router as uploads_router
 from routers.embeddings import router as embeddings_router
 from routers.retrieval import router as retrieval_router
+from routers.graph import router as graph_router
+from routers.analysis import router as analysis_router
+from routers.bias import router as bias_router
+from routers.explainability import router as explainability_router
+from routers.report import router as report_router
+from routers.workflows import router as workflows_router
+from routers.export import router as export_router
 
 # Configure structured logging
 structlog.configure(
@@ -124,6 +131,13 @@ app.include_router(users_router,      prefix=f"{API_V1}/users",          tags=["
 app.include_router(uploads_router,    prefix=f"{API_V1}/uploads",        tags=["Document Uploads"])
 app.include_router(embeddings_router, prefix=f"{API_V1}/embeddings",    tags=["Embeddings"])
 app.include_router(retrieval_router,  prefix=f"{API_V1}",                tags=["Retrieval"])
+app.include_router(graph_router,      prefix=f"{API_V1}",                tags=["LangGraph"])
+app.include_router(analysis_router,   prefix=f"{API_V1}",                tags=["Analysis"])
+app.include_router(bias_router,       prefix=f"{API_V1}",                tags=["Bias"])
+app.include_router(explainability_router, prefix=f"{API_V1}",            tags=["Explainability"])
+app.include_router(report_router,         prefix=f"{API_V1}",            tags=["Report Generation"])
+app.include_router(workflows_router,      prefix=f"{API_V1}",            tags=["Workflows"])
+app.include_router(export_router,         prefix=f"{API_V1}",            tags=["Export"])
 app.include_router(cycles_router,     prefix=f"{API_V1}/review-cycles",  tags=["Review Cycles"])
 app.include_router(inputs_router,     prefix=f"{API_V1}/review-cycles",  tags=["Inputs"])
 app.include_router(pipeline_router,   prefix=f"{API_V1}",                tags=["Pipeline"])

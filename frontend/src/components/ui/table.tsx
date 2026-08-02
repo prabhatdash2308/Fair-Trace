@@ -1,12 +1,21 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
+/**
+ * Table — GitHub Enterprise-style.
+ * Sticky header on scroll.
+ * Subtle row borders (not full grid).
+ * Clean hover state.
+ * Correct column alignment for numbers (right) and status (center).
+ * Reduced horizontal padding vs default for better density.
+ */
+
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
     <div className="relative w-full overflow-auto">
       <table
         ref={ref}
-        className={cn("w-full caption-bottom text-sm", className)}
+        className={cn("w-full caption-bottom border-collapse", className)}
         {...props}
       />
     </div>
@@ -16,7 +25,15 @@ Table.displayName = "Table"
 
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead ref={ref} className={cn("[&_tr]:border-b border-border", className)} {...props} />
+    <thead
+      ref={ref}
+      className={cn(
+        "sticky top-0 z-10 bg-card",
+        "[&_tr]:border-b [&_tr]:border-border",
+        className
+      )}
+      {...props}
+    />
   )
 )
 TableHeader.displayName = "TableHeader"
@@ -36,7 +53,11 @@ const TableFooter = React.forwardRef<HTMLTableSectionElement, React.HTMLAttribut
   ({ className, ...props }, ref) => (
     <tfoot
       ref={ref}
-      className={cn("border-t border-border bg-muted/50 font-medium [&>tr]:last:border-b-0", className)}
+      className={cn(
+        "border-t border-border bg-muted/30 font-medium",
+        "[&>tr]:last:border-b-0",
+        className
+      )}
       {...props}
     />
   )
@@ -48,7 +69,10 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
     <tr
       ref={ref}
       className={cn(
-        "border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+        "group border-b border-border/60",
+        "transition-colors duration-[80ms]",
+        "hover:bg-muted/40",
+        "data-[state=selected]:bg-primary/5",
         className
       )}
       {...props}
@@ -62,7 +86,10 @@ const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<
     <th
       ref={ref}
       className={cn(
-        "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+        "h-10 px-3 text-left align-middle",
+        "text-overline text-muted-foreground uppercase tracking-widest",
+        "font-semibold select-none",
+        "[&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}
@@ -75,7 +102,11 @@ const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<
   ({ className, ...props }, ref) => (
     <td
       ref={ref}
-      className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+      className={cn(
+        "px-3 py-3 align-middle text-body",
+        "[&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        className
+      )}
       {...props}
     />
   )
@@ -86,7 +117,7 @@ const TableCaption = React.forwardRef<HTMLTableCaptionElement, React.HTMLAttribu
   ({ className, ...props }, ref) => (
     <caption
       ref={ref}
-      className={cn("mt-4 text-sm text-muted-foreground", className)}
+      className={cn("mt-4 text-caption text-muted-foreground", className)}
       {...props}
     />
   )

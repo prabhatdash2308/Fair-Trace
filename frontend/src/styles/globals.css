@@ -1,124 +1,180 @@
-/* ── Geist Font ─────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* ── Inter Font (production-grade, variable weight) ─────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS Design Tokens ───────────────────────────────────────────────── */
+/* ─── CSS Design Tokens ───────────────────────────────────────────────── */
 @layer base {
   :root {
-    /* Background / Surface */
-    --background: 210 33% 98%;
-    --foreground: 222 47% 11%;
-    
-    --surface: 210 33% 98%;
-    --surface-secondary: 210 40% 96%;
+    /* ── Background / Surface ── */
+    --background:          210 20% 98%;    /* near-white */
+    --foreground:          222 47% 10%;    /* deep navy text */
 
-    /* Card (aliases surface) */
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --surface:             210 20% 98%;
+    --surface-raised:      0 0% 100%;      /* cards, panels */
+    --surface-overlay:     0 0% 100%;      /* dropdowns, popovers */
 
-    /* Popover (aliases surface) */
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    /* ── Card ── */
+    --card:                0 0% 100%;
+    --card-foreground:     222 47% 10%;
 
-    /* Primary — Blue */
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
+    /* ── Popover / Dropdown ── */
+    --popover:             0 0% 100%;
+    --popover-foreground:  222 47% 10%;
 
-    /* Secondary — Slate */
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    /* ── Sidebar ── */
+    --sidebar:             222 30% 96%;
+    --sidebar-border:      214 32% 88%;
+    --sidebar-foreground:  222 47% 10%;
 
-    /* Muted */
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    /* ── Primary — Blue (actions only) ── */
+    --primary:             221 83% 53%;
+    --primary-foreground:  210 40% 98%;
+    --primary-subtle:      221 83% 53% / 0.08;
 
-    /* Accent */
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    /* ── Secondary — Slate ── */
+    --secondary:           210 25% 93%;
+    --secondary-foreground: 222 47% 20%;
 
-    /* Destructive — Rose (Danger) */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --danger: 0 84% 60%;
-    --danger-foreground: 210 40% 98%;
+    /* ── Muted ── */
+    --muted:               210 25% 93%;
+    --muted-foreground:    215 16% 47%;
 
-    /* Success — Emerald */
-    --success: 160 84% 39%;
-    --success-foreground: 0 0% 100%;
+    /* ── Accent ── */
+    --accent:              210 25% 93%;
+    --accent-foreground:   222 47% 10%;
 
-    /* Warning — Amber */
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 0%;
+    /* ── Destructive / Danger ── */
+    --destructive:         0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --danger:              0 84% 60%;
+    --danger-foreground:   0 0% 100%;
 
-    /* Border & Input */
-    --border: 214 32% 91%;
-    --input:  214 32% 91%;
-    --ring:   221 83% 53%;
+    /* ── Success ── */
+    --success:             142 71% 45%;
+    --success-foreground:  0 0% 100%;
 
-    /* Radius */
-    --radius: 0.75rem;
+    /* ── Warning ── */
+    --warning:             38 92% 50%;
+    --warning-foreground:  0 0% 0%;
+
+    /* ── Info ── */
+    --info:                217 91% 60%;
+    --info-foreground:     0 0% 100%;
+
+    /* ── Border & Input ── */
+    --border:              214 25% 87%;
+    --border-subtle:       214 25% 92%;
+    --input:               214 25% 87%;
+    --ring:                221 83% 53%;
+
+    /* ── Radius scale ── */
+    --radius-sm:  0.375rem;  /* 6px */
+    --radius:     0.5rem;    /* 8px  — buttons, badges */
+    --radius-lg:  0.625rem;  /* 10px — cards */
+    --radius-xl:  0.75rem;   /* 12px — dialogs, large cards */
+    --radius-2xl: 1rem;      /* 16px — modals */
+
+    /* ── Elevation / Shadow ── */
+    --shadow-xs:  0 1px 2px 0 rgb(0 0 0 / 0.04);
+    --shadow-sm:  0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    --shadow-md:  0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+    --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+    --shadow-xl:  0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
+    --shadow-card: 0 0 0 1px hsl(var(--border) / 0.6), 0 1px 3px 0 rgb(0 0 0 / 0.04);
+    --shadow-float: 0 0 0 1px hsl(var(--border)), 0 8px 20px -4px rgb(0 0 0 / 0.12);
+
+    /* ── Motion ── */
+    --duration-instant: 80ms;
+    --duration-fast:    120ms;
+    --duration-normal:  160ms;
+    --duration-page:    200ms;
+    --duration-modal:   240ms;
+    --ease-default:     cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out:         cubic-bezier(0, 0, 0.2, 1);
+    --ease-spring:      cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .dark {
-    /* Background / Surface */
-    --background: 222 47% 7%;
-    --foreground: 210 40% 98%;
+    /* ── Background / Surface ── */
+    --background:          222 47% 6%;     /* deep navy — darkest */
+    --foreground:          215 25% 90%;    /* soft white text */
 
-    --surface: 222 47% 7%;
-    --surface-secondary: 217 33% 17%;
+    --surface:             222 47% 6%;
+    --surface-raised:      222 40% 8%;     /* cards on dark bg */
+    --surface-overlay:     222 40% 9%;     /* dropdowns */
 
-    /* Card */
-    --card: 222 40% 11%;
-    --card-foreground: 210 40% 98%;
+    /* ── Card ── */
+    --card:                222 40% 8%;     /* subtle lift above background */
+    --card-foreground:     215 25% 90%;
 
-    /* Popover */
-    --popover: 222 40% 9%;
-    --popover-foreground: 210 40% 98%;
+    /* ── Popover / Dropdown ── */
+    --popover:             222 40% 9%;
+    --popover-foreground:  215 25% 90%;
 
-    /* Primary */
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
+    /* ── Sidebar ── */
+    --sidebar:             222 45% 7%;     /* slightly different from bg */
+    --sidebar-border:      217 30% 13%;
+    --sidebar-foreground:  215 25% 90%;
 
-    /* Secondary */
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    /* ── Primary ── */
+    --primary:             217 91% 60%;
+    --primary-foreground:  222 47% 6%;
 
-    /* Muted */
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    /* ── Secondary ── */
+    --secondary:           217 25% 14%;
+    --secondary-foreground: 215 25% 80%;
 
-    /* Accent */
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    /* ── Muted ── */
+    --muted:               217 25% 14%;
+    --muted-foreground:    215 18% 52%;
 
-    /* Destructive (Danger) */
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --danger: 0 63% 31%;
-    --danger-foreground: 210 40% 98%;
+    /* ── Accent ── */
+    --accent:              217 25% 14%;
+    --accent-foreground:   215 25% 90%;
 
-    /* Success */
-    --success: 160 84% 29%;
-    --success-foreground: 0 0% 100%;
+    /* ── Destructive / Danger ── */
+    --destructive:         0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --danger:              0 72% 51%;
+    --danger-foreground:   0 0% 100%;
 
-    /* Warning */
-    --warning: 38 92% 40%;
-    --warning-foreground: 0 0% 0%;
+    /* ── Success ── */
+    --success:             142 71% 45%;
+    --success-foreground:  0 0% 100%;
 
-    /* Border & Input */
-    --border: 217 33% 17%;
-    --input:  217 33% 17%;
-    --ring:   221 83% 53%;
+    /* ── Warning ── */
+    --warning:             38 92% 50%;
+    --warning-foreground:  0 0% 0%;
+
+    /* ── Info ── */
+    --info:                217 91% 60%;
+    --info-foreground:     0 0% 100%;
+
+    /* ── Border & Input ── */
+    --border:              217 25% 16%;    /* very subtle — barely there */
+    --border-subtle:       217 25% 12%;
+    --input:               217 25% 14%;
+    --ring:                217 91% 60%;
+
+    /* ── Shadows (stronger in dark mode) ── */
+    --shadow-xs:  0 1px 2px 0 rgb(0 0 0 / 0.15);
+    --shadow-sm:  0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.15);
+    --shadow-md:  0 4px 6px -1px rgb(0 0 0 / 0.25), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+    --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+    --shadow-xl:  0 20px 25px -5px rgb(0 0 0 / 0.35), 0 8px 10px -6px rgb(0 0 0 / 0.2);
+    --shadow-card: 0 0 0 1px hsl(var(--border)), 0 1px 3px 0 rgb(0 0 0 / 0.2);
+    --shadow-float: 0 0 0 1px hsl(var(--border)), 0 8px 20px -4px rgb(0 0 0 / 0.4);
   }
 }
 
-/* ── Base Reset ──────────────────────────────────────────────────────── */
+/* ─── Base Reset ──────────────────────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   html {
@@ -126,23 +182,25 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
   }
 
-  /* Focus ring — keyboard accessible */
+  /* ── Focus ring — WCAG AA keyboard accessible ── */
   :focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    @apply outline-none ring-2 ring-ring/60 ring-offset-2 ring-offset-background;
   }
 
-  /* Accessibility: Prefers Reduced Motion */
+  /* ── Reduced motion ── */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    ::before,
-    ::after {
+    *, ::before, ::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -150,61 +208,136 @@
     }
   }
 
-  /* Scrollbar — subtle dark mode scrollbar */
+  /* ── Scrollbar — thin, subtle ── */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
+  ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
     @apply bg-border rounded-full;
+    border: 1px solid transparent;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/40;
+    @apply bg-muted-foreground/30;
   }
 
-  /* Selection */
+  /* ── Text selection ── */
   ::selection {
-    @apply bg-primary/20 text-foreground;
+    @apply bg-primary/15 text-foreground;
   }
+
+  /* ── Typography hierarchy ── */
+  h1 { @apply text-heading-xl font-semibold tracking-tight; }
+  h2 { @apply text-heading-lg font-semibold tracking-tight; }
+  h3 { @apply text-heading-md font-semibold; }
+  h4 { @apply text-heading-sm font-semibold; }
+  h5, h6 { @apply text-body font-semibold; }
+  p  { @apply text-body; }
 }
 
-/* ── Utility layer ───────────────────────────────────────────────────── */
+/* ─── Component Utilities ─────────────────────────────────────────────── */
 @layer utilities {
   /* Text balance for headings */
-  .text-balance {
-    text-wrap: balance;
+  .text-balance { text-wrap: balance; }
+
+  /* Utilities now registered in tailwind.config.ts plugin */
+
+  /* ── Page header standard layout ── */
+  .page-header {
+    @apply flex items-start justify-between gap-4 pb-6 border-b border-border mb-8;
   }
 
-  /* Hide scrollbar but keep scrolling */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  /* ── Section header ── */
+  .section-header {
+    @apply flex items-center justify-between mb-4;
   }
 
-  /* Hero section: dark radial spotlight */
+  /* ── Status badge variants (neutral surface) ── */
+  .status-active  { @apply bg-primary/10 text-primary border-primary/20; }
+  .status-success { @apply bg-success/10 text-success border-success/20; }
+  .status-warning { @apply bg-warning/10 text-warning border-warning/20; }
+  .status-danger  { @apply bg-danger/10 text-danger border-danger/20; }
+  .status-neutral { @apply bg-muted text-muted-foreground border-border; }
+
+  /* ── Gradient backgrounds ── */
   .hero-gradient {
     background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(221 83% 53% / 0.15) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 40% at 80% 20%, hsl(221 83% 53% / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(221 83% 53% / 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 35% at 80% 10%, hsl(221 83% 53% / 0.06) 0%, transparent 50%),
       hsl(var(--background));
   }
 
-  /* Per-section subtle mesh texture */
-  .section-mesh {
-    background-image: 
-      radial-gradient(hsl(var(--border)) 1px, transparent 1px);
-    background-size: 32px 32px;
+  /* ── Enterprise glass surface ── */
+  .glass-surface {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(12px) saturate(1.5);
+    -webkit-backdrop-filter: blur(12px) saturate(1.5);
+    border: 1px solid hsl(var(--border) / 0.5);
   }
 
-  /* Pipeline node pulse animation */
+  /* ── Shimmer skeleton ── */
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 25%,
+      hsl(var(--muted-foreground) / 0.08) 50%,
+      hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+
+  /* ── Pipeline pulse ── */
   .pipeline-pulse {
-    animation: pipeline-pulse 3s ease-in-out infinite;
+    animation: pipeline-pulse 2.5s ease-in-out infinite;
+  }
+
+  /* ── Tabular numbers ── */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* ── Sidebar active indicator ── */
+  .nav-item-active {
+    @apply bg-primary/8 text-primary font-medium;
+    position: relative;
+  }
+  .nav-item-active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 60%;
+    background: hsl(var(--primary));
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* ── Input consistent height ── */
+  .input-base {
+    @apply h-9 px-3 text-sm rounded-md border border-input bg-background;
+    @apply placeholder:text-muted-foreground;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-0;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    @apply transition-colors;
+    transition-duration: var(--duration-fast);
+  }
+
+  /* ── Section mesh background ── */
+  .section-mesh {
+    background-image: radial-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}
+
+/* ─── Keyframes ───────────────────────────────────────────────────────── */
+@layer utilities {
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 
   @keyframes pipeline-pulse {
@@ -212,10 +345,35 @@
     50%       { box-shadow: 0 0 0 4px hsl(var(--primary) / 0.12); }
   }
 
-  /* Enterprise glass surface */
-  .glass-surface {
-    background: hsl(var(--card) / 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.97); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.3); }
+    70%  { box-shadow: 0 0 0 8px hsl(var(--primary) / 0); }
+    100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+  }
+
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  .animate-fade-in      { animation: fade-in 0.2s var(--ease-out) forwards; }
+  .animate-slide-up     { animation: slide-up 0.2s var(--ease-spring) forwards; }
+  .animate-scale-in     { animation: scale-in 0.2s var(--ease-spring) forwards; }
+  .animate-pulse-ring   { animation: pulse-ring 2s ease-in-out infinite; }
+  .animate-spin-slow    { animation: spin-slow 2s linear infinite; }
 }

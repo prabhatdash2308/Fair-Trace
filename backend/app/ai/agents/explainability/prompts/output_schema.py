@@ -1,0 +1,3 @@
+from app.ai.agents.explainability.schemas import ExplainabilityAnalysisSchema
+
+EXPLAINABILITY_OUTPUT_SCHEMA = ExplainabilityAnalysisSchema

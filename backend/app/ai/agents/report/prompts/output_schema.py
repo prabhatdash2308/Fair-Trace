@@ -1,0 +1,3 @@
+from app.ai.agents.report.schemas import EnterprisePerformanceReportSchema
+
+REPORT_OUTPUT_SCHEMA = EnterprisePerformanceReportSchema

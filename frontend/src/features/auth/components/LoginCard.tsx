@@ -13,12 +13,13 @@ import { ShieldCheck, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { LoginForm } from './LoginForm';
-import { RoleSelector } from './RoleSelector';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
+
 import { DemoCredentials } from './DemoCredentials';
 import { APP_CAPABILITIES } from '@/config/capabilities';
 import { ROUTES } from '@/constants/routes';
 import { EASINGS } from '@/components/motion/variants';
-import type { Role } from '@/constants/roles';
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const SSO_PROVIDERS = [
@@ -55,16 +56,7 @@ const SSO_PROVIDERS = [
 ];
 
 export function LoginCard() {
-  const [selectedRole, setSelectedRole] = React.useState<Role | null>(null);
-
-  const subtitle = React.useMemo(() => {
-    switch (selectedRole) {
-      case 'ADMIN':    return 'Signing in as Administrator';
-      case 'MANAGER':  return 'Signing in as Manager';
-      case 'EMPLOYEE': return 'Signing in as Employee';
-      default:         return 'Enterprise Performance Intelligence';
-    }
-  }, [selectedRole]);
+  const subtitle = 'Enterprise Performance Intelligence';
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row overflow-x-hidden selection:bg-primary/20 selection:text-primary bg-[#030712] relative">
@@ -131,6 +123,9 @@ export function LoginCard() {
 
       {/* ── Right Panel: Authentication ── */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 relative z-10">
+        <div className="absolute top-6 right-6 lg:top-12 lg:right-12">
+          <ThemeToggle />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -167,13 +162,8 @@ export function LoginCard() {
               </motion.p>
             </div>
 
-            {/* Workspace Selector */}
-            <div className="px-8 pt-8 pb-6">
-              <RoleSelector selectedRole={selectedRole} onSelect={setSelectedRole} />
-            </div>
-
             {/* Form */}
-            <div className="px-8 pb-2">
+            <div className="px-8 pt-8 pb-2">
               <LoginForm />
             </div>
 

@@ -1,72 +1,63 @@
-"""
-Constructs and compiles the Enterprise LangGraph StateGraph.
-"""
-from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver
-from app.ai.state.review_state import ReviewState
-from .nodes import GraphNodes
-from . import edges
+from langgraph.graph import StateGraph, START, END
+from app.ai.graph.state import ReviewState
+from app.ai.graph.registry import NodeRegistry
+from app.ai.graph.checkpointer import GraphCheckpointer
+from app.ai.graph.middleware import NodeMiddleware
+from app.ai.graph.exceptions import GraphExecutionError
 
-class PipelineBuilder:
-    def __init__(self, nodes: GraphNodes):
-        self.nodes = nodes
-        self.workflow = StateGraph(ReviewState)
-        self.memory = MemorySaver()
+# Make sure nodes are imported so the registry populates
+import app.ai.graph.nodes.load_context
+import app.ai.graph.nodes.preprocess
+import app.ai.graph.nodes.performance
+import app.ai.graph.nodes.bias
+import app.ai.graph.nodes.explainability
+import app.ai.graph.nodes.approval
+import app.ai.graph.nodes.report
+
+class GraphBuilder:
+    """Enterprise Graph Orchestrator mapping sequential deterministic business flow."""
+    
+    @staticmethod
+    def build_graph():
+        workflow = StateGraph(ReviewState)
         
-    def build(self):
-        """Constructs the Enterprise Workflow pipeline."""
+        # 1. Instantiate Nodes
+        nodes = NodeRegistry.list_nodes()
+        node_instances = {}
         
-        # Add Nodes
-        self.workflow.add_node("intake", self.nodes.intake_node)
-        self.workflow.add_node("embedding", self.nodes.embedding_node)
-        self.workflow.add_node("evidence_retrieval", self.nodes.evidence_retrieval_node)
-        self.workflow.add_node("bias_detection", self.nodes.bias_detection_node)
-        self.workflow.add_node("performance_analysis", self.nodes.performance_analysis_node)
-        self.workflow.add_node("explainability_step", self.nodes.explainability_node)
-        self.workflow.add_node("report_generation", self.nodes.report_generation_node)
-        self.workflow.add_node("human_approval", self.nodes.human_approval_node)
-        self.workflow.add_node("finalization", self.nodes.finalization_node)
-        self.workflow.add_node("retry_node", self.nodes.retry_node)
+        # To avoid late binding closure issues in loops
+        def make_wrapper(node_name, node_instance):
+            async def wrapper(state: ReviewState):
+                result = await NodeMiddleware.execute_with_middleware(node_name, state, node_instance.run)
+                updated_state = state.copy()
+                for key, val in result.state.items():
+                    # Handle nested dictionary updates deterministically instead of pure overwrite if it's a dict
+                    if isinstance(val, dict) and isinstance(updated_state.get(key), dict):
+                        updated_state[key] = {**updated_state[key], **val}
+                    else:
+                        updated_state[key] = val
+                return updated_state
+            return wrapper
+            
+        for name, definition in nodes.items():
+            instance = definition.node_class()
+            node_instances[name] = instance
+            workflow.add_node(name, make_wrapper(name, instance))
+            
+        # 3. Edges
+        workflow.add_edge(START, "load_context_node")
+        workflow.add_edge("load_context_node", "preprocess_node")
+        workflow.add_edge("preprocess_node", "performance_node")
+        workflow.add_edge("performance_node", "bias_node")
+        workflow.add_edge("bias_node", "explainability_node")
+        workflow.add_edge("explainability_node", "report_node")
+        workflow.add_edge("report_node", "approval_node")
+        workflow.add_edge("approval_node", END)
         
-        self.workflow.set_entry_point("intake")
-        
-        # Add Conditional Edges
-        self.workflow.add_conditional_edges("intake", edges.route_after_intake)
-        self.workflow.add_conditional_edges("embedding", edges.route_after_embedding)
-        self.workflow.add_conditional_edges("evidence_retrieval", edges.route_after_retrieval)
-        self.workflow.add_conditional_edges("bias_detection", edges.route_after_bias)
-        self.workflow.add_conditional_edges("performance_analysis", edges.route_after_analysis)
-        self.workflow.add_conditional_edges("explainability_step", edges.route_after_explainability_step)
-        self.workflow.add_conditional_edges("report_generation", edges.route_after_report)
-        
-        self.workflow.add_conditional_edges(
-            "human_approval", 
-            edges.decision_router,
-            {
-                "finalization": "finalization",
-                "report_generation": "report_generation",
-                "retry_node": "retry_node",
-                "END": END
-            }
+        # 4. Compile
+        from app.workflows.checkpoint_service import CheckpointService
+        checkpointer = CheckpointService.get_checkpointer()
+        compiled = workflow.compile(
+            checkpointer=checkpointer
         )
-        
-        self.workflow.add_conditional_edges("retry_node", edges.retry_router, {
-            "intake": "intake",
-            "embedding": "embedding",
-            "evidence_retrieval": "evidence_retrieval",
-            "bias_detection": "bias_detection",
-            "performance_analysis": "performance_analysis",
-            "analysis": "performance_analysis", # fallback
-            "explainability_step": "explainability_step",
-            "report_generation": "report_generation",
-            "report": "report_generation", # fallback
-            "human_approval": "human_approval",
-            "END": END
-        })
-        self.workflow.add_edge("finalization", END)
-        
-        # Compile with Checkpointing and Interrupt
-        return self.workflow.compile(
-            checkpointer=self.memory,
-            interrupt_after=["human_approval"]
-        )
+        return compiled

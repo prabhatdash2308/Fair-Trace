@@ -21,6 +21,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import {
   Tooltip,
   TooltipContent,
@@ -320,6 +321,7 @@ export function LandingPage() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             {isAuthenticated ? (
               <Button
                 id="btn-dashboard-nav"
@@ -429,15 +431,14 @@ export function LandingPage() {
 
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button
+                  <Link
                     id="btn-hero-primary"
-                    size="lg"
-                    className="h-11 px-8 text-caption group"
-                    onClick={handleCTA}
+                    to={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.LOGIN}
+                    className="inline-flex items-center justify-center rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 text-caption group"
                   >
                     Deploy Intelligence
                     <ArrowRight className="ml-2 h-4 w-4 opacity-70 group-hover:translate-x-1 motion-safe:transition-transform" aria-hidden="true" />
-                  </Button>
+                  </Link>
                   <Button
                     id="btn-hero-secondary"
                     size="lg"

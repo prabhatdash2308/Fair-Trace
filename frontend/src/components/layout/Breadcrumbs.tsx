@@ -41,7 +41,7 @@ export function Breadcrumbs() {
       initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className="flex items-center gap-1 text-sm text-muted-foreground mb-4"
+      className="flex items-center gap-1 text-caption text-muted-foreground"
     >
       <Link
         to="/dashboard"

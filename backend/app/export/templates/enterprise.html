@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ metadata.title }}</title>
+    <style>
+        {% include "styles.css" ignore missing %}
+    </style>
+</head>
+<body>
+    {% include "header.html" ignore missing %}
+    
+    <div class="content">
+        <h1>Enterprise Performance Report</h1>
+        <div class="metadata">
+            <p><strong>Workflow ID:</strong> {{ metadata.workflow_id }}</p>
+            <p><strong>Generated At:</strong> {{ metadata.generated_at }}</p>
+        </div>
+        
+        <h2>Executive Summary</h2>
+        <p>{{ report.get('summary', 'No summary available.') }}</p>
+        
+        <!-- Extensible structure for future sections -->
+    </div>
+    
+    {% include "footer.html" ignore missing %}
+</body>
+</html>

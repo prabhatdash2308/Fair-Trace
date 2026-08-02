@@ -1,13 +1,26 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Target, Activity, Zap, ArrowRight, Lock, Loader2, AlertCircle, Calendar } from "lucide-react";
+import {
+  Users, Target, Activity, Zap, ArrowRight, Lock, AlertCircle, Calendar
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { APP_CAPABILITIES } from '@/config/capabilities';
-import { staggerContainer, slideUpVariants, cardTransition, hoverScale, tapScale } from '@/components/motion/variants';
+import { staggerContainer, slideUpVariants, cardTransition } from '@/components/motion/variants';
+import { MetricCard } from '@/components/shared/MetricCard';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { useDashboardKPIs, useRecentActivity } from '@/features/dashboard/hooks/useDashboard.ts';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
+
+const STATUS_BADGE: Record<string, { variant: 'default' | 'success' | 'warning' | 'secondary'; label: string }> = {
+  ACTIVE:    { variant: 'default',   label: 'Active'    },
+  COMPLETED: { variant: 'success',   label: 'Completed' },
+  PENDING:   { variant: 'warning',   label: 'Pending'   },
+  DRAFT:     { variant: 'secondary', label: 'Draft'     },
+};
 
 export function Dashboard() {
   const { data: kpis, isLoading: isLoadingKpis, isError: isKpisError } = useDashboardKPIs();
@@ -16,10 +29,40 @@ export function Dashboard() {
   const metrics = useMemo(() => {
     if (!kpis) return [];
     return [
-      { title: "Total Cycles", value: kpis.totalCycles.toString(), icon: Users },
-      { title: "Active Cycles", value: kpis.activeCycles.toString(), icon: Activity },
-      { title: "Pending Approvals", value: kpis.pendingApprovals.toString(), icon: Target },
-      { title: "Completed (This Month)", value: kpis.completedThisMonth.toString(), icon: Zap },
+      {
+        title: "Total Cycles",
+        value: kpis.totalCycles.toString(),
+        icon: Users,
+        variant: 'default' as const,
+        description: "All time",
+      },
+      {
+        title: "Active Cycles",
+        value: kpis.activeCycles.toString(),
+        icon: Activity,
+        variant: 'info' as const,
+        description: "In progress",
+        trend: kpis.activeCycles > 0
+          ? { direction: 'up' as const, value: kpis.activeCycles, label: 'running' }
+          : undefined,
+      },
+      {
+        title: "Pending Approvals",
+        value: kpis.pendingApprovals.toString(),
+        icon: Target,
+        variant: kpis.pendingApprovals > 10 ? 'warning' as const : 'default' as const,
+        description: "Awaiting review",
+      },
+      {
+        title: "Completed (Month)",
+        value: kpis.completedThisMonth.toString(),
+        icon: Zap,
+        variant: 'success' as const,
+        description: "This month",
+        trend: kpis.completedThisMonth > 0
+          ? { direction: 'up' as const, value: kpis.completedThisMonth, label: 'this month' }
+          : undefined,
+      },
     ];
   }, [kpis]);
 
@@ -28,112 +71,147 @@ export function Dashboard() {
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
-      className="space-y-10 pb-12"
+      className="space-y-8 pb-12"
     >
-      <motion.div variants={slideUpVariants} className="flex flex-col md:flex-row justify-between items-start md:items-end gap-5 border-b border-border pb-6">
-        <div className="space-y-1.5">
-          <h2 className="text-heading-xl tracking-tight text-foreground">Executive Overview</h2>
+      {/* ── Page header inline (no PageHeader component — dashboard has special layout) ── */}
+      <motion.div
+        variants={slideUpVariants}
+        className="flex flex-col md:flex-row justify-between items-start md:items-end gap-5 pb-6 border-b border-border"
+      >
+        <div className="space-y-1">
+          <h1 className="text-heading-xl font-semibold text-foreground tracking-tight">
+            Executive Overview
+          </h1>
           <p className="text-body text-muted-foreground max-w-2xl">
             Real-time telemetry of workforce performance, AI decisions, and enterprise risk vectors.
           </p>
         </div>
-        
-        <Button 
-          variant="outline" 
-          className="gap-2 shrink-0 transition-colors shadow-sm group"
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 shrink-0 group"
           disabled={!APP_CAPABILITIES.reports.exportPDF}
           title={!APP_CAPABILITIES.reports.exportPDF ? "Report export is disabled by your organization" : "Download Executive Report"}
         >
-          {!APP_CAPABILITIES.reports.exportPDF && <Lock className="h-4 w-4 text-muted-foreground mr-1" />}
-          Download Executive Report <ArrowRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+          {!APP_CAPABILITIES.reports.exportPDF && (
+            <Lock className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          )}
+          Download Report
+          <ArrowRight className="h-4 w-4 opacity-70 transition-transform duration-[120ms] group-hover:translate-x-0.5" aria-hidden="true" />
         </Button>
       </motion.div>
 
-      {/* Primary Metrics Grid */}
-      <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      {/* ── KPI Metric Cards ── */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {isLoadingKpis ? (
-          // Skeletons
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 rounded-xl border border-border bg-surface shadow-sm animate-pulse" />
+            <MetricCard key={i} title="" value="" loading />
           ))
         ) : isKpisError ? (
-          <div className="col-span-1 sm:col-span-2 lg:col-span-4 p-6 rounded-xl border border-danger/30 bg-danger/10 flex items-center gap-3 text-danger">
-            <AlertCircle className="h-5 w-5" />
-            <span className="text-sm font-medium">Unable to load dashboard metrics.</span>
+          <div className="col-span-full flex items-center gap-3 px-4 py-3 rounded-lg border border-danger/20 bg-danger/8 text-danger">
+            <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="text-body font-medium">Unable to load dashboard metrics. Check your connection.</span>
           </div>
         ) : (
           metrics.map((metric, i) => (
-            <motion.div key={i} variants={cardTransition} whileHover={hoverScale} whileTap={tapScale}>
-              <div className="flex flex-col gap-4 p-6 rounded-xl border border-border bg-surface hover:bg-muted/30 transition-colors shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-caption font-semibold text-muted-foreground uppercase tracking-widest">{metric.title}</span>
-                  <metric.icon className="h-4 w-4 text-muted-foreground opacity-60" />
-                </div>
-                <div className="flex items-end justify-between">
-                  <span className="text-heading-lg tracking-tight text-foreground leading-none">{metric.value}</span>
-                </div>
-              </div>
+            <motion.div key={i} variants={cardTransition}>
+              <MetricCard
+                title={metric.title}
+                value={metric.value}
+                icon={metric.icon}
+                variant={metric.variant}
+                description={metric.description}
+                trend={metric.trend}
+              />
             </motion.div>
           ))
         )}
       </div>
 
-      {/* Action Items List */}
-      <motion.div variants={slideUpVariants} className="pt-2">
+      {/* ── Recent Activity ── */}
+      <motion.div variants={slideUpVariants}>
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-heading-md tracking-tight text-foreground">Recent Activity</h3>
-          <Button variant="ghost" size="sm" className="text-body font-medium text-muted-foreground hover:text-foreground" asChild>
-            <Link to={ROUTES.REVIEWS}>View all cycles</Link>
+          <h2 className="text-heading-md font-semibold text-foreground">Recent Activity</h2>
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground gap-1" asChild>
+            <Link to={ROUTES.REVIEWS}>
+              View all cycles
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
           </Button>
         </div>
-        
-        <div className="flex flex-col gap-3">
+
+        <div className="flex flex-col gap-2">
           {isLoadingActivity ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-xl border border-border bg-surface shadow-sm animate-pulse" />
+              <div
+                key={i}
+                className="h-[72px] rounded-lg border border-border bg-card animate-shimmer"
+                style={{ opacity: 1 - i * 0.15 }}
+              />
             ))
-          ) : activities?.length === 0 ? (
-            <div className="p-12 border border-dashed border-border rounded-xl text-center space-y-3 bg-surface-secondary">
-              <div className="w-12 h-12 rounded-full bg-surface border border-border flex items-center justify-center mx-auto mb-4">
-                <Calendar className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <h4 className="text-heading-sm text-foreground">No recent activity</h4>
-              <p className="text-body text-muted-foreground max-w-sm mx-auto">
-                No review cycles have been modified recently. Start a new evaluation cycle to see activity here.
-              </p>
-              <Button variant="outline" className="mt-4" asChild>
-                <Link to={ROUTES.REVIEWS}>Manage Cycles</Link>
-              </Button>
+          ) : !activities || activities.length === 0 ? (
+            <div className="rounded-lg border border-border bg-card">
+              <EmptyState
+                icon={Calendar}
+                title="No recent activity"
+                description="No review cycles have been modified recently. Start a new evaluation cycle to see activity here."
+                action={{
+                  label: 'Create Review Cycle',
+                  onClick: () => {},
+                  variant: 'default',
+                }}
+                secondaryAction={{
+                  label: 'Browse Employees',
+                  onClick: () => {},
+                  variant: 'ghost',
+                }}
+                size="md"
+              />
             </div>
           ) : (
-            activities?.map((item) => (
-              <motion.div key={item.id} variants={cardTransition} className="group flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-xl border border-border bg-surface hover:border-primary/30 transition-colors shadow-sm">
-                <div className="space-y-1.5">
-                  <span className="font-semibold text-body text-foreground">{item.title}</span>
-                  <p className="text-caption text-muted-foreground leading-relaxed">
-                    Last updated {formatDistanceToNow(new Date(item.updated_at), { addSuffix: true })}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4 shrink-0 mt-2 md:mt-0">
-                  <span className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${
-                    item.status === 'ACTIVE' ? 'bg-primary/10 text-primary border-primary/20' : 
-                    item.status === 'COMPLETED' ? 'bg-success/10 text-success border-success/20' : 
-                    'bg-warning/10 text-warning border-warning/20'
-                  }`}>
-                    {item.status}
-                  </span>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground md:opacity-0 md:group-hover:opacity-100 transition-opacity" asChild>
-                    <Link to={`${ROUTES.REVIEWS}/${item.id}`}>
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </motion.div>
-            ))
+            activities.map((item) => {
+              const statusCfg = STATUS_BADGE[item.status] ?? STATUS_BADGE['DRAFT'];
+              return (
+                <motion.div
+                  key={item.id}
+                  variants={cardTransition}
+                  className={cn(
+                    'group flex flex-col md:flex-row md:items-center justify-between gap-4 px-5 py-4',
+                    'rounded-lg border border-border bg-card',
+                    'hover:border-border/80 hover:shadow-sm',
+                    'transition-all duration-[160ms]',
+                  )}
+                >
+                  <div className="space-y-0.5 min-w-0">
+                    <p className="text-body font-medium text-foreground truncate">{item.title}</p>
+                    <p className="text-caption text-muted-foreground">
+                      Updated {formatDistanceToNow(new Date(item.updated_at), { addSuffix: true })}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <Badge variant={statusCfg.variant}>
+                      {statusCfg.label}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-[120ms]"
+                      aria-label={`View ${item.title}`}
+                      asChild
+                    >
+                      <Link to={`${ROUTES.REVIEWS}/${item.id}`}>
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  </div>
+                </motion.div>
+              );
+            })
           )}
         </div>
       </motion.div>
     </motion.div>
   );
 }
-

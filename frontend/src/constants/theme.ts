@@ -4,7 +4,7 @@
  */
 export const THEME_CONSTANTS = {
   STORAGE_KEY: 'rg_theme',
-  DEFAULT: 'dark',
+  DEFAULT: 'light',
 
   BREAKPOINTS: {
     sm: 640,

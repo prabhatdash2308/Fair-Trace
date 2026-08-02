@@ -47,6 +47,19 @@ export const ROUTES = {
   // Settings
   SETTINGS: '/settings',
 
+  // Sidebar missing pages
+  ORGANIZATIONS: '/organizations',
+  POLICCIES: '/policies', // Will rename to POLICIES
+  POLICIES: '/policies',
+  AUDIT_LOGS: '/audit-logs',
+  SECURITY: '/security',
+  PERFORMANCE: '/performance',
+  GOALS: '/goals',
+  FEEDBACK: '/feedback',
+  CAREER: '/career',
+  ACHIEVEMENTS: '/achievements',
+  LEARNING: '/learning',
+
   // Unauthorized
   UNAUTHORIZED: '/unauthorized',
 } as const;

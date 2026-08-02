@@ -40,4 +40,9 @@ export const reviewApi = {
     apiClient
       .post<ReviewInput>(API_ENDPOINTS.CYCLES.INPUTS(cycleId), data)
       .then((r) => r.data),
+
+  triggerPipeline: (cycleId: string) =>
+    apiClient
+      .post(API_ENDPOINTS.CYCLES.TRIGGER(cycleId))
+      .then((r) => r.data),
 };
