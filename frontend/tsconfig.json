@@ -6,7 +6,6 @@
     "types": ["vite/client"],
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
-    "ignoreDeprecations": "6.0",
     "jsx": "react-jsx",
     "strict": true,
 
