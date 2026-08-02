@@ -4,6 +4,7 @@ import { Users, Target, Activity, Calendar, Zap, ArrowRight, UserCheck } from 'l
 import { Button } from '@/components/ui/button';
 import { staggerContainer, slideUpVariants, cardTransition, hoverScale, tapScale } from '@/components/motion/variants';
 import { useDashboardKPIs, useRecentActivity } from '@/features/dashboard/hooks/useDashboard';
+import { useEmployees } from '@/features/employees/hooks/useEmployees';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes';
 import { formatDistanceToNow } from 'date-fns';
@@ -12,14 +13,15 @@ export function ManagerDashboard() {
   const { data: kpis, isLoading: isLoadingKpis } = useDashboardKPIs();
   const { data: activities, isLoading: isLoadingActivity } = useRecentActivity(5);
 
+  const { data: usersData, isLoading: isLoadingUsers } = useEmployees({ limit: 1 });
+
   const metrics = useMemo(() => {
     return [
-      { title: 'Team Members', value: '12', icon: Users },
+      { title: 'Team Members', value: usersData?.total?.toString() || '—', icon: Users },
       { title: 'Pending Reviews', value: kpis?.pendingApprovals?.toString() || '—', icon: Target },
       { title: 'Completed (Month)', value: kpis?.completedThisMonth?.toString() || '—', icon: Zap },
-      { title: 'Bias Alerts', value: '3', icon: Activity },
     ];
-  }, [kpis]);
+  }, [kpis, usersData]);
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-10 pb-12">
@@ -33,9 +35,9 @@ export function ManagerDashboard() {
       </motion.div>
 
       {/* KPI Grid */}
-      <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        {isLoadingKpis
-          ? Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {(isLoadingKpis || isLoadingUsers)
+          ? Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-32 rounded-xl border border-border bg-surface shadow-sm animate-pulse" />
             ))
           : metrics.map((metric, i) => (
@@ -114,7 +116,6 @@ export function ManagerDashboard() {
               <Button variant="outline" className="justify-start" asChild>
                 <Link to={ROUTES.EMPLOYEES}><UserCheck className="mr-2 h-4 w-4" /> View My Team</Link>
               </Button>
-              <Button variant="outline" className="justify-start"><Calendar className="mr-2 h-4 w-4" /> Schedule 1:1</Button>
            </div>
         </motion.div>
       </div>

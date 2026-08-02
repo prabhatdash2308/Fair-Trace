@@ -4,20 +4,21 @@ import { Users, Target, Activity, Zap, ShieldCheck, Building, Key, ShieldAlert }
 import { Button } from '@/components/ui/button';
 import { staggerContainer, slideUpVariants, cardTransition, hoverScale, tapScale } from '@/components/motion/variants';
 import { useDashboardKPIs } from '@/features/dashboard/hooks/useDashboard';
-
+import { useEmployees } from '@/features/employees/hooks/useEmployees';
 export function AdminDashboard() {
-  const { data: kpis, isLoading } = useDashboardKPIs();
+  const { data: kpis, isLoading: isKPIsLoading } = useDashboardKPIs();
+  const { data: usersData, isLoading: isUsersLoading } = useEmployees({ limit: 1 });
 
   const metrics = useMemo(() => {
     return [
-      { title: 'Organizations', value: '1', icon: Building },
-      { title: 'Users', value: '124', icon: Users },
+      { title: 'Users', value: usersData?.total?.toString() || '—', icon: Users },
       { title: 'Review Cycles', value: kpis?.totalCycles?.toString() || '—', icon: Target },
-      { title: 'Active Sessions', value: '42', icon: Activity },
-      { title: 'API Usage', value: '14.2k', icon: Zap },
-      { title: 'System Health', value: '99.9%', icon: ShieldCheck },
+      { title: 'Active Cycles', value: kpis?.activeCycles?.toString() || '—', icon: Activity },
+      { title: 'System Health', value: '100%', icon: ShieldCheck },
     ];
-  }, [kpis]);
+  }, [kpis, usersData]);
+
+  const isLoading = isKPIsLoading || isUsersLoading;
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-10 pb-12">

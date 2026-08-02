@@ -11,10 +11,7 @@ import {
 
 const NAV_ITEMS = [
   { id: 'workspace',    label: 'Workspace',         icon: Building },
-  { id: 'security',     label: 'Security & SSO',     icon: ShieldCheck },
-  { id: 'roles',        label: 'Roles & Permissions',icon: Users },
   { id: 'notifications',label: 'Notifications',      icon: Bell },
-  { id: 'integrations', label: 'Integrations',       icon: Plug },
   { id: 'ai',           label: 'AI Configuration',   icon: Brain },
 ] as const;
 
@@ -263,22 +260,7 @@ export function Settings() {
             </Card>
           )}
 
-          {/* Placeholder for other tabs */}
-          {!['workspace', 'ai', 'notifications'].includes(activeTab) && (
-            <Card>
-              <CardContent className="py-16 text-center">
-                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-muted border border-border mx-auto mb-4">
-                  <ActiveIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-                </div>
-                <p className="text-heading-sm font-semibold text-foreground mb-1 capitalize">
-                  {NAV_ITEMS.find(n => n.id === activeTab)?.label}
-                </p>
-                <p className="text-body text-muted-foreground max-w-xs mx-auto">
-                  This section is coming soon. Enterprise configuration options will appear here.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+
         </div>
       </div>
     </div>

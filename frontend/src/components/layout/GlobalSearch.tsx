@@ -64,22 +64,8 @@ export function GlobalSearch() {
       action: () => navigate(ROUTES.EMPLOYEES),
       group: 'Navigation',
     },
-    {
-      id: 'reports',
-      label: 'AI Reports',
-      description: 'View performance review reports',
-      icon: FileText,
-      action: () => navigate(ROUTES.REPORTS),
-      group: 'Navigation',
-    },
-    {
-      id: 'pipeline',
-      label: 'Pipeline Monitor',
-      description: 'Track AI pipeline status',
-      icon: Activity,
-      action: () => navigate(ROUTES.PIPELINE),
-      group: 'Navigation',
-    },
+
+
     {
       id: 'settings',
       label: 'Settings',

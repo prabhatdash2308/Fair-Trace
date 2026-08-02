@@ -28,20 +28,22 @@ export function EmployeeDashboard() {
       </motion.div>
 
       {/* KPI Grid */}
-      <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        {metrics.map((metric, i) => (
-          <motion.div key={i} variants={cardTransition} whileHover={hoverScale} whileTap={tapScale}>
+      <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
+        <motion.div variants={cardTransition} whileHover={hoverScale} whileTap={tapScale}>
             <div className="flex flex-col gap-4 p-6 rounded-xl border border-border bg-surface hover:bg-muted/30 transition-colors shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-caption font-semibold text-muted-foreground uppercase tracking-widest">{metric.title}</span>
-                <metric.icon className="h-4 w-4 text-muted-foreground opacity-60" />
+                <span className="text-caption font-semibold text-muted-foreground uppercase tracking-widest">My Reviews</span>
+                <Target className="h-4 w-4 text-muted-foreground opacity-60" />
               </div>
               <div className="flex items-end justify-between">
-                <span className="text-heading-lg tracking-tight text-foreground leading-none">{metric.value}</span>
+                <span className="text-heading-lg tracking-tight text-foreground leading-none">
+                  <Button variant="link" className="p-0 h-auto text-heading-lg" asChild>
+                    <Link to={ROUTES.REVIEWS}>View Reviews</Link>
+                  </Button>
+                </span>
               </div>
             </div>
           </motion.div>
-        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -59,26 +61,7 @@ export function EmployeeDashboard() {
              </p>
            </div>
         </motion.div>
-        
-        <motion.div variants={slideUpVariants} className="space-y-4">
-           <h3 className="text-heading-md tracking-tight text-foreground">Learning & Growth</h3>
-           <div className="flex flex-col gap-3">
-              <div className="p-4 border border-border rounded-xl bg-surface">
-                 <div className="flex items-center gap-3 mb-2">
-                    <BookOpen className="h-4 w-4 text-primary" />
-                    <span className="font-semibold text-caption text-foreground">Recommended Course</span>
-                 </div>
-                 <p className="text-label text-muted-foreground">Advanced React Patterns</p>
-              </div>
-              <div className="p-4 border border-border rounded-xl bg-surface">
-                 <div className="flex items-center gap-3 mb-2">
-                    <CheckCircle className="h-4 w-4 text-success" />
-                    <span className="font-semibold text-caption text-foreground">Goal Progress</span>
-                 </div>
-                 <p className="text-label text-muted-foreground">Improve test coverage to 80%</p>
-              </div>
-           </div>
-        </motion.div>
+
       </div>
     </motion.div>
   );

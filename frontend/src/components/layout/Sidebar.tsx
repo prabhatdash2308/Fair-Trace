@@ -28,19 +28,14 @@ function getNavSections(role: string | undefined) {
           label: 'Overview',
           items: [
             { name: 'Dashboard',      href: ROUTES.DASHBOARD_ADMIN, icon: LayoutDashboard },
-            { name: 'Organizations',  href: ROUTES.ORGANIZATIONS,   icon: Building },
             { name: 'Users',          href: ROUTES.EMPLOYEES,       icon: Users },
             { name: 'Reviews',        href: ROUTES.REVIEWS,         icon: Target },
-            { name: 'Policies',       href: ROUTES.POLICIES,        icon: ShieldCheck },
           ]
         },
         {
           label: 'Administration',
           items: [
-            { name: 'Audit Logs',     href: ROUTES.AUDIT_LOGS,      icon: History },
-            { name: 'Analytics',      href: ROUTES.REPORTS,         icon: LineChart },
             { name: 'Settings',       href: ROUTES.SETTINGS,        icon: Settings },
-            { name: 'Security',       href: ROUTES.SECURITY,        icon: Shield },
           ]
         }
       ];
@@ -52,15 +47,11 @@ function getNavSections(role: string | undefined) {
             { name: 'Dashboard',      href: ROUTES.DASHBOARD_MANAGER, icon: LayoutDashboard },
             { name: 'My Team',        href: ROUTES.EMPLOYEES,         icon: Users },
             { name: 'Reviews',        href: ROUTES.REVIEWS,           icon: Target },
-            { name: 'Approvals',      href: ROUTES.APPROVALS,         icon: CheckSquare },
           ]
         },
         {
           label: 'Analytics',
           items: [
-            { name: 'Performance',    href: ROUTES.PERFORMANCE,       icon: LineChart },
-            { name: 'Goals',          href: ROUTES.GOALS,             icon: Target },
-            { name: 'Reports',        href: ROUTES.REPORTS,           icon: FileText },
             { name: 'Settings',       href: ROUTES.SETTINGS,          icon: Settings },
           ]
         }
@@ -73,16 +64,11 @@ function getNavSections(role: string | undefined) {
           items: [
             { name: 'Dashboard',      href: ROUTES.DASHBOARD_EMPLOYEE, icon: LayoutDashboard },
             { name: 'My Reviews',     href: ROUTES.REVIEWS,            icon: Target },
-            { name: 'Goals',          href: ROUTES.GOALS,              icon: Target },
-            { name: 'Feedback',       href: ROUTES.FEEDBACK,           icon: FileText },
           ]
         },
         {
           label: 'Career',
           items: [
-            { name: 'Career Progress', href: ROUTES.CAREER,               icon: LineChart },
-            { name: 'Achievements',   href: ROUTES.ACHIEVEMENTS,          icon: Award },
-            { name: 'Learning',       href: ROUTES.LEARNING,              icon: BookOpen },
             { name: 'Settings',       href: ROUTES.SETTINGS,          icon: Settings },
           ]
         }

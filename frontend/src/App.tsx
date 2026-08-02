@@ -30,7 +30,6 @@ const ExplainabilityDetailsPage = lazy(() => import('@/pages/ExplainabilityDetai
 const AIInsights = lazy(() => import('@/pages/AIInsights').then(m => ({ default: m.AIInsights })));
 const Settings = lazy(() => import('@/pages/Settings').then(m => ({ default: m.Settings })));
 
-const PlaceholderPage = lazy(() => import('@/pages/PlaceholderPage').then(m => ({ default: m.PlaceholderPage })));
 
 // A simple fallback for Suspense
 function PageLoader() {
@@ -112,9 +111,7 @@ function App() {
           <Route path={ROUTES.INSIGHTS} element={
             <Suspense fallback={<PageLoader />}><AIInsights /></Suspense>
           } />
-          <Route path={ROUTES.REPORTS} element={
-            <Suspense fallback={<PageLoader />}><ReportsPage /></Suspense>
-          } />
+
           <Route path={ROUTES.REPORT_DETAIL} element={
             <Suspense fallback={<PageLoader />}><ReportDetailsPage /></Suspense>
           } />
@@ -125,18 +122,6 @@ function App() {
             <Suspense fallback={<PageLoader />}><Settings /></Suspense>
           } />
 
-          {/* Placeholders */}
-          <Route path={ROUTES.ORGANIZATIONS} element={<Suspense fallback={<PageLoader />}><PlaceholderPage /></Suspense>} />
-          <Route path={ROUTES.POLICIES} element={<Suspense fallback={<PageLoader />}><PlaceholderPage /></Suspense>} />
-          <Route path={ROUTES.AUDIT_LOGS} element={<Suspense fallback={<PageLoader />}><PlaceholderPage /></Suspense>} />
-          <Route path={ROUTES.SECURITY} element={<Suspense fallback={<PageLoader />}><PlaceholderPage /></Suspense>} />
-          <Route path={ROUTES.PERFORMANCE} element={<Suspense fallback={<PageLoader />}><PlaceholderPage /></Suspense>} />
-          <Route path={ROUTES.GOALS} element={<Suspense fallback={<PageLoader />}><PlaceholderPage /></Suspense>} />
-          <Route path={ROUTES.FEEDBACK} element={<Suspense fallback={<PageLoader />}><PlaceholderPage /></Suspense>} />
-          <Route path={ROUTES.CAREER} element={<Suspense fallback={<PageLoader />}><PlaceholderPage /></Suspense>} />
-          <Route path={ROUTES.ACHIEVEMENTS} element={<Suspense fallback={<PageLoader />}><PlaceholderPage /></Suspense>} />
-          <Route path={ROUTES.LEARNING} element={<Suspense fallback={<PageLoader />}><PlaceholderPage /></Suspense>} />
-          <Route path={ROUTES.APPROVALS} element={<Suspense fallback={<PageLoader />}><PlaceholderPage /></Suspense>} />
         </Route>
 
         {/* Fallback 404 */}
