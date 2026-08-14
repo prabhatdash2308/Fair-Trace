@@ -283,14 +283,14 @@ def test_golden_path_e2e(client, setup_test_data, db_session):
     assert res_cycle.json()["status"] == "APPROVED"
     
     # 10. Verify Immutability
-    res = client.patch(f"/api/v1/reports/{report_v2_id}/status", headers=headers_a, json={
+    res = client.patch(f"/api/v1/reports/{report_id}/status", headers=headers_a, json={
         "action": "REJECT",
         "reason": "Changed my mind",
         "idempotency_key": str(uuid.uuid4())
     })
     assert res.status_code == 409, "Cannot change finalized report"
     
-    res = client.patch(f"/api/v1/reports/{report_v2_id}/status", headers=headers_a, json={
+    res = client.patch(f"/api/v1/reports/{report_id}/status", headers=headers_a, json={
         "action": "REVISION_REQUESTED",
         "reason": "Changed my mind",
         "idempotency_key": str(uuid.uuid4())
@@ -299,14 +299,14 @@ def test_golden_path_e2e(client, setup_test_data, db_session):
     
     # 11. PDF Export Verification
     # Trigger export synchronously
-    res = client.get(f"/api/v1/export/report/{report_v2_id}/pdf", headers=headers_a)
+    res = client.get(f"/api/v1/export/report/{report_id}/pdf", headers=headers_a)
     if res.status_code != 200: print('ERROR', res.text); assert res.status_code == 200
     assert res.headers["content-type"] == "application/pdf"
     pdf_bytes = res.content
     assert len(pdf_bytes) > 100, "PDF should not be empty"
     
     # Also verify HTML export
-    res = client.get(f"/api/v1/export/report/{report_v2_id}/html", headers=headers_a)
+    res = client.get(f"/api/v1/export/report/{report_id}/html", headers=headers_a)
     assert res.status_code == 200
     assert "text/html" in res.headers["content-type"]
     assert len(res.content) > 100, "HTML should not be empty"

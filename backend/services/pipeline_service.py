@@ -51,16 +51,20 @@ def get_pipeline_state(pipeline_run_id: str) -> Optional[ReviewGuardState]:
 # ── Pipeline Trigger ───────────────────────────────────────────────────────────
 
 def initialize_pipeline(
-    db, cycle_id: str, actor: CurrentUser
+    db, review_id: str, actor: CurrentUser
 ) -> str:
     """
     Validates conditions and returns a pipeline_run_id.
     The actual pipeline execution is deferred to a BackgroundTask.
     """
     from uuid import UUID
-    cycle = review_cycle_repo.get_by_id(db, UUID(str(cycle_id)))
+    from repositories import review_repo, review_cycle_repo
+    review = review_repo.get_by_id(db, UUID(str(review_id)))
+    if not review:
+        raise NotFoundError(f"Review {review_id} not found.")
+    cycle = review_cycle_repo.get_by_id(db, review.review_cycle_id)
     if not cycle:
-        raise NotFoundError(f"Review cycle {cycle_id} not found.")
+        raise NotFoundError(f"Review cycle {review.review_cycle_id} not found.")
     if cycle.status not in (ReviewCycleStatus.ACTIVE, ReviewCycleStatus.PROCESSING):
         raise InvalidStateError("Pipeline can only be triggered for ACTIVE or PROCESSING review cycles.")
     # DB-level stale check
@@ -82,7 +86,7 @@ def initialize_pipeline(
             db.commit()
         else:
             raise ConflictError("A pipeline is already running for this review cycle.")
-    input_count = review_input_repo.count_for_cycle(db, UUID(str(cycle_id)))
+    input_count = review_input_repo.count_for_cycle(db, UUID(str(review_id)))
     if input_count == 0:
         raise BusinessValidationError("At least one input must be submitted before triggering the pipeline.")
 
@@ -93,8 +97,8 @@ def initialize_pipeline(
         "pipeline_run_id": pipeline_run_id,
         "state_version": 0,
         "review_id": str(review.id),
-        "employee_id": str(cycle.employee_id),
-        "manager_id": str(cycle.manager_id),
+        "employee_id": str(review.employee_id),
+        "manager_id": str(review.manager_id),
         "triggered_by_id": str(actor.id),
         "correlation_id": pipeline_run_id,
         "raw_input_ids": [],
@@ -150,8 +154,8 @@ def initialize_pipeline(
         "event_type": AuditEventType.PIPELINE_TRIGGERED,
         "actor_id": actor.id,
         "actor_role": actor.role,
-        "resource_type": "review_cycle",
-        "resource_id": cycle.id,
+        "resource_type": "review",
+        "resource_id": review.id,
         "event_payload": {"pipeline_run_id": pipeline_run_id, "input_count": input_count},
         "correlation_id": pipeline_run_id,
     })
@@ -382,8 +386,8 @@ def process_approval_action(
         # Trigger AI Regeneration
         if background_tasks:
             try:
-                new_pipeline_run_id = initialize_pipeline(db, str(cycle.id), actor)
-                background_tasks.add_task(execute_pipeline, new_pipeline_run_id, cycle.id)
+                new_pipeline_run_id = initialize_pipeline(db, str(report.review_id), actor)
+                background_tasks.add_task(execute_pipeline, new_pipeline_run_id, str(report.review_id))
             except Exception as e:
                 logger.error("pipeline_regeneration_failed", error=str(e))
 

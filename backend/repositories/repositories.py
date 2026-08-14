@@ -20,6 +20,10 @@ class ReviewInputRepository(BaseRepository[ReviewInput]):
     def __init__(self):
         super().__init__(ReviewInput)
 
+    # TODO(P2.0): Naming Inconsistency
+    # These methods are named `_for_cycle` but accept and filter by `review_id`.
+    # They should be renamed to `_for_review` to match the P1 Schema separation.
+    # Coordinate with Member 1 & Member 2 before renaming, as routers.py and domain_services.py depend on these.
     def list_for_cycle(self, db: Session, review_id: UUID) -> list[ReviewInput]:
         return list(
             db.scalars(select(ReviewInput).where(ReviewInput.review_id == review_id)).all()
@@ -47,6 +51,10 @@ class ReportRepository(BaseRepository[Report]):
     def __init__(self):
         super().__init__(Report)
 
+    # TODO(P2.0): Naming Inconsistency
+    # These methods are named `_for_cycle` but accept and filter by `review_id`.
+    # They should be renamed to `_for_review` to match the P1 Schema separation.
+    # Coordinate with Member 1 & Member 2 before renaming.
     def get_current_for_cycle(self, db: Session, review_id: UUID) -> Report | None:
         return db.scalar(
             select(Report)
