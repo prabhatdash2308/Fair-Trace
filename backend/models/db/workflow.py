@@ -1,6 +1,6 @@
 import uuid
 import datetime
-from sqlalchemy import Column, String, DateTime, Enum as SQLEnum, ForeignKey, JSON, Integer
+from sqlalchemy import Column, String, DateTime, Enum as SQLEnum, ForeignKey, JSON, Integer, Index, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from models.db.base import Base
@@ -27,6 +27,11 @@ class ApprovalStatus(str, Enum):
 
 class WorkflowExecution(Base):
     __tablename__ = "workflow_executions"
+    __table_args__ = (
+        Index('uq_active_workflow_per_review', 'review_id', unique=True,
+              sqlite_where=text("status = 'RUNNING'"), 
+              postgresql_where=text("status = 'RUNNING'")),
+    )
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     execution_id = Column(String(100), unique=True, nullable=False, index=True)
@@ -38,16 +43,21 @@ class WorkflowExecution(Base):
     finished_at = Column(DateTime(timezone=True), nullable=True)
     paused_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
+    last_heartbeat_at = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)
     
     owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     organization_id = Column(String(36), nullable=True)
+    review_id = Column(UUID(as_uuid=True), ForeignKey("reviews.id"), nullable=True)
     
     checkpoint_id = Column(String(100), nullable=True)
     current_retry = Column(Integer, default=0)
+    retry_count = Column(Integer, default=0)
+    max_retries = Column(Integer, default=3)
     metadata_ = Column("metadata", JSON, default=dict)
     
     approvals = relationship("ApprovalRequest", back_populates="workflow", cascade="all, delete-orphan")
     history = relationship("WorkflowHistory", back_populates="workflow", cascade="all, delete-orphan")
+    agent_executions = relationship("AgentExecution", back_populates="workflow", cascade="all, delete-orphan")
 
 class ApprovalRequest(Base):
     __tablename__ = "approval_requests"

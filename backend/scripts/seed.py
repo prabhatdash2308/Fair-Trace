@@ -20,6 +20,8 @@ from models.db.performance_claim import PerformanceClaim
 from models.db.evidence_citation import EvidenceCitation
 from models.db.export import ReportExport
 from models.db.workflow import WorkflowExecution, ApprovalRequest, WorkflowHistory
+from models.db.agent_execution import AgentExecution
+from models.db.organization import Organization
 from core.security import hash_password
 from models.enums import (
     UserRole, ReviewCycleStatus, InputType, DocumentStatus, ReportStatus, 
@@ -27,6 +29,11 @@ from models.enums import (
 )
 
 def seed_db():
+    seed_password = os.environ.get("FAIRTRACE_SEED_PASSWORD")
+    if not seed_password:
+        print("ERROR: FAIRTRACE_SEED_PASSWORD is required.")
+        sys.exit(1)
+
     print("Starting database seeding...")
     db = SessionLocal()
     
@@ -36,6 +43,7 @@ def seed_db():
 
         # Clear existing data in reverse dependency order
         print("Clearing old data...")
+        db.query(AgentExecution).delete()
         db.query(WorkflowHistory).delete()
         db.query(ApprovalRequest).delete()
         db.query(ReportExport).delete()
@@ -49,16 +57,24 @@ def seed_db():
         db.query(ReviewInput).delete()
         db.query(ReviewCycle).delete()
         db.query(AuditEvent).delete()
+        db.query(ReviewCycle).delete()
         db.query(User).delete()
+        db.query(Organization).delete()
         db.commit()
         print("Old data cleared.")
 
+        # Seed Organization
+        org = Organization(id=uuid.uuid4(), name="FairTrace Demo Corp")
+        db.add(org)
+        db.commit()
+
         # 1 Admin
         admin = User(
-            email="admin@reviewguard.ai",
-            password_hash=hash_password("admin123"),
+            email="admin@fairtrace.ai",
+            password_hash=hash_password(seed_password),
             full_name="Admin User",
             role=UserRole.ADMIN,
+            organization_id=org.id,
             is_active=True
         )
         db.add(admin)
@@ -68,10 +84,11 @@ def seed_db():
         managers = []
         for i in range(1, 3):
             manager = User(
-                email=f"manager{i}@reviewguard.ai",
-                password_hash=hash_password("manager123"),
+                email=f"manager{i}@fairtrace.ai",
+                password_hash=hash_password(seed_password),
                 full_name=f"Manager {i}",
                 role=UserRole.MANAGER,
+                organization_id=org.id,
                 is_active=True
             )
             db.add(manager)
@@ -83,11 +100,12 @@ def seed_db():
         for i in range(1, 16):
             manager = managers[i % 2]
             employee = User(
-                email=f"employee{i}@reviewguard.ai",
-                password_hash=hash_password("employee123"),
+                email=f"employee{i}@fairtrace.ai",
+                password_hash=hash_password(seed_password),
                 full_name=f"Employee {i}",
                 role=UserRole.EMPLOYEE,
                 manager_id=manager.id,
+                organization_id=org.id,
                 is_active=True
             )
             db.add(employee)
@@ -106,6 +124,7 @@ def seed_db():
                 employee_id=employee.id,
                 manager_id=employee.manager_id,
                 created_by=admin.id,
+                organization_id=org.id,
                 title=f"2026 Annual Review - {employee.full_name}",
                 review_period_start=datetime.utcnow() - timedelta(days=365),
                 review_period_end=datetime.utcnow(),

@@ -25,36 +25,24 @@ export function useLogin() {
   const from =
     (location.state as { from?: { pathname: string } })?.from?.pathname ?? null;
 
-  // ── DEMO MODE ────────────────────────────────────────────────────────────────
-  if (DEMO_MODE) {
-    const demoLogin = (_values: LoginSchema) => {
-      setIsDemoLoading(true);
-      // Brief visual delay so it feels like a real login
-      setTimeout(() => {
-        storeLogin(DEMO_TOKEN, DEMO_USER);
-        const destination = from ?? roleDashboardRoute(DEMO_USER.role);
-        navigate(destination, { replace: true });
-        setIsDemoLoading(false);
-      }, 600);
-    };
-
-    return {
-      login: demoLogin,
-      isLoading: isDemoLoading,
-      isSuccess: false,
-      error: null,
-      isError: false,
-      reset: () => {},
-    };
-  }
-
-  // ── PRODUCTION MODE ──────────────────────────────────────────────────────────
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const mutation = useMutation({
-    mutationFn: ({ email, password, rememberMe }: LoginSchema) =>
-      authService.login({ email, password }, rememberMe),
-
-    onSuccess: (response) => {
+    mutationFn: async ({ email, password, rememberMe }: LoginSchema) => {
+      if (DEMO_MODE) {
+        setIsDemoLoading(true);
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            storeLogin(DEMO_TOKEN, DEMO_USER);
+            setIsDemoLoading(false);
+            resolve({
+              access_token: DEMO_TOKEN,
+              user: DEMO_USER,
+            });
+          }, 600);
+        });
+      }
+      return authService.login({ email, password }, rememberMe);
+    },
+    onSuccess: (response: any) => {
       const roleTarget = roleDashboardRoute(response.user.role);
       const destination = from ?? roleTarget;
       navigate(destination, { replace: true });

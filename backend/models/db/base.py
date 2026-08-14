@@ -1,5 +1,5 @@
 """
-ReviewGuard AI — SQLAlchemy Base and TimestampMixin
+FairTrace — SQLAlchemy Base and TimestampMixin
 All ORM models inherit from Base + TimestampMixin.
 """
 

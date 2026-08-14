@@ -1,5 +1,5 @@
 /**
- * ReviewGuard AI - Backend Capability Configuration
+ * FairTrace - Backend Capability Configuration
  * 
  * Centralized feature flags for adapting the UI based on backend availability 
  * or organizational configuration.

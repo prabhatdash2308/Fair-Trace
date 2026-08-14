@@ -57,6 +57,7 @@ const SSO_PROVIDERS = [
 
 export function LoginCard() {
   const subtitle = 'Enterprise Performance Intelligence';
+  const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row overflow-x-hidden selection:bg-primary/20 selection:text-primary bg-[#030712] relative">
@@ -83,7 +84,7 @@ export function LoginCard() {
             <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary/10 border border-primary/20">
               <ShieldCheck className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-white">ReviewGuard <span className="text-primary">AI</span></span>
+            <span className="text-xl font-bold tracking-tight text-white">FairTrace</span>
           </div>
 
           <h1 className="text-5xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
@@ -98,10 +99,10 @@ export function LoginCard() {
           {/* Trust Metrics */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-12">
             {[
-              { stat: '99.99%', label: 'Availability' },
-              { stat: 'SOC2', label: 'Ready' },
-              { stat: 'ISO27001', label: 'Aligned' },
-              { stat: '100%', label: 'Explainable' }
+              { stat: 'Evidence', label: 'Backed AI' },
+              { stat: 'Audit', label: 'Ready Workflows' },
+              { stat: 'Fairness', label: 'Aligned' },
+              { stat: 'Transparent', label: 'Decisions' }
             ].map((metric) => (
               <div key={metric.label} className="flex flex-col">
                 <span className="text-3xl font-bold text-white mb-1 tracking-tight">{metric.stat}</span>
@@ -137,7 +138,7 @@ export function LoginCard() {
             <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 mb-4 shadow-lg shadow-primary/10">
               <ShieldCheck className="h-6 w-6 text-primary" aria-hidden="true" />
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">ReviewGuard AI</h1>
+            <h1 className="text-2xl font-bold text-white tracking-tight">FairTrace</h1>
           </div>
 
           {/* Authentication Card - High Elevation */}
@@ -149,7 +150,7 @@ export function LoginCard() {
             {/* Header */}
             <div className="px-8 pt-10 pb-6 text-center border-b border-border/40 bg-card/30">
               <h2 className="text-2xl font-bold tracking-tight text-white mb-2">
-                Sign in to ReviewGuard AI
+                Sign in to FairTrace
               </h2>
               <motion.p
                 key={subtitle}
@@ -174,7 +175,7 @@ export function LoginCard() {
                 <span>Protected by Enterprise Authentication</span>
               </div>
               <div className="flex gap-2">
-                <span>AES-256 Encryption</span>
+                <span>Evidence-linked decisions</span>
                 <span>•</span>
                 <span>Role-Based Access Control</span>
               </div>
@@ -227,9 +228,11 @@ export function LoginCard() {
             </div>
 
             {/* Demo Accounts */}
-            <div className="px-8 pb-8 bg-muted/10 border-t border-border/30 pt-6">
-              <DemoCredentials />
-            </div>
+            {DEMO_MODE && (
+              <div className="px-8 pb-8 bg-muted/10 border-t border-border/30 pt-6">
+                <DemoCredentials />
+              </div>
+            )}
           </div>
 
           {/* Mobile/Auth Footer */}

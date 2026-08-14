@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const APP_NAME = 'ReviewGuard AI';
+const APP_NAME = 'FairTrace';
 
 /**
  * useDocumentTitle — sets the browser tab title.

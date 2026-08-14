@@ -4,6 +4,8 @@ import { Plus, ChevronRight, Filter } from 'lucide-react'
 import { cyclesApi, type ReviewCycle } from '../api'
 import { useAuthStore } from '../store'
 import { statusBadge, formatDate } from '../utils'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { FileText } from 'lucide-react'
 
 export default function CyclesListPage() {
   const navigate = useNavigate()
@@ -55,15 +57,19 @@ export default function CyclesListPage() {
           <div className="spinner-lg" style={{ margin: '0 auto' }} />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">📋</div>
-          <div className="empty-title">No review cycles found</div>
-          {user?.role !== 'EMPLOYEE' && (
-            <button className="btn btn-primary mt-4" onClick={() => navigate('/cycles/new')}>
-              <Plus size={15} /> Create First Cycle
-            </button>
-          )}
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="No review cycles found"
+          description="You haven't created any review cycles yet."
+          action={
+            user?.role !== 'EMPLOYEE'
+              ? {
+                  label: "Create First Cycle",
+                  onClick: () => navigate('/cycles/new')
+                }
+              : undefined
+          }
+        />
       ) : (
         <div className="card">
           <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>

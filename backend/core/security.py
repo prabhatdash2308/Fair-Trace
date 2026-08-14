@@ -1,5 +1,5 @@
 """
-ReviewGuard AI — JWT Authentication & Password Hashing
+FairTrace — JWT Authentication & Password Hashing
 All cryptographic operations are centralized here.
 """
 

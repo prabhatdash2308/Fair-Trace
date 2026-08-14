@@ -1,4 +1,4 @@
-"""ReviewGuard AI — AuditEvent ORM Model (write-once, immutable)"""
+"""FairTrace — AuditEvent ORM Model (write-once, immutable)"""
 
 import uuid
 from datetime import datetime
@@ -23,6 +23,7 @@ class AuditEvent(Base):
     __tablename__ = "audit_events"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    organization_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True, index=True)
     event_type: Mapped[AuditEventType] = mapped_column(Enum(AuditEventType, name="audit_event_type"), nullable=False, index=True)
     actor_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
     actor_role: Mapped[Optional[UserRole]] = mapped_column(Enum(UserRole, name="user_role"), nullable=True)

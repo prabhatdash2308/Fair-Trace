@@ -10,7 +10,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
  * a dashboard workspace that does not match their role.
  */
 export function UnauthorizedPage() {
-  useDocumentTitle('Unauthorized — ReviewGuard AI');
+  useDocumentTitle('Unauthorized — FairTrace');
   const navigate = useNavigate();
   const { user } = useAuthStore();
 

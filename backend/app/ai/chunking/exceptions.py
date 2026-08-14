@@ -1,6 +1,6 @@
-from core.exceptions import ReviewGuardException
+from core.exceptions import FairTraceException
 
-class ChunkingError(ReviewGuardException):
+class ChunkingError(FairTraceException):
     """Base exception for all chunking-related errors."""
     def __init__(self, message: str, error_code: str = "CHUNKING_ERROR", http_status: int = 500):
         self.error_code = error_code

@@ -1,5 +1,5 @@
 """
-ReviewGuard AI — Application Configuration
+FairTrace — Application Configuration
 Reads all settings from environment variables via Pydantic BaseSettings.
 Fails fast on startup if required variables are missing.
 """
@@ -16,11 +16,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        case_sensitive=False,
+        extra="ignore",
     )
 
     # ── Application ────────────────────────────────────────────────────────────
-    app_name: str = "ReviewGuard AI"
+    app_name: str = "FairTrace"
     app_version: str = "1.0.0"
     environment: str = "development"
     cors_origins: List[str] = ["http://localhost:5173", "http://localhost:3000"]
@@ -52,7 +52,7 @@ class Settings(BaseSettings):
 
     # ── Qdrant Vector Store ────────────────────────────────────────────────────
     qdrant_url: str = "http://localhost:6333"
-    qdrant_collection_name: str = "reviewguard_documents"
+    qdrant_collection_name: str = "fairtrace_documents"
     
     @property
     def QDRANT_COLLECTION(self) -> str:

@@ -1,4 +1,4 @@
-"""ReviewGuard AI — Generic Base Repository"""
+"""FairTrace — Generic Base Repository"""
 
 from typing import Generic, TypeVar
 from uuid import UUID
@@ -20,8 +20,11 @@ class BaseRepository(Generic[T]):
     def __init__(self, model: type[T]):
         self.model = model
 
-    def get_by_id(self, db: Session, id: UUID) -> T | None:
-        return db.get(self.model, id)
+    def get_by_id(self, db: Session, id: UUID, organization_id: UUID | None = None) -> T | None:
+        stmt = select(self.model).where(self.model.id == id)
+        if organization_id and hasattr(self.model, "organization_id"):
+            stmt = stmt.where(self.model.organization_id == organization_id)
+        return db.scalar(stmt)
 
     def create(self, db: Session, obj_in: dict) -> T:
         obj = self.model(**obj_in)
@@ -44,8 +47,12 @@ class BaseRepository(Generic[T]):
         skip: int = 0,
         limit: int = 20,
         filters: dict | None = None,
+        organization_id: UUID | None = None,
     ) -> tuple[list[T], int]:
         stmt = select(self.model)
+        if organization_id and hasattr(self.model, "organization_id"):
+            stmt = stmt.where(self.model.organization_id == organization_id)
+            
         if filters:
             for key, value in filters.items():
                 stmt = stmt.where(getattr(self.model, key) == value)

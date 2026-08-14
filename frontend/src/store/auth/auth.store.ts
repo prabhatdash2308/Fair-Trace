@@ -58,16 +58,13 @@ export const useAuthStore = create<AuthState>()(
         set({ token, user, isAuthenticated: true }),
 
       logout: () =>
-        // In demo mode, logout re-seeds the demo user instead of clearing
-        DEMO_MODE
-          ? set({ token: DEMO_TOKEN, user: DEMO_USER as AuthUser, isAuthenticated: true })
-          : set({
-              token: null,
-              refreshToken: null,
-              expiresAt: null,
-              user: null,
-              isAuthenticated: false,
-            }),
+        set({
+          token: null,
+          refreshToken: null,
+          expiresAt: null,
+          user: null,
+          isAuthenticated: false,
+        }),
 
       setUser: (userUpdate) =>
         set((state) => ({

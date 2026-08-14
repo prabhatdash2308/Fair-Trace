@@ -1,4 +1,4 @@
-"""ReviewGuard AI — All Pydantic Request/Response Schemas"""
+"""FairTrace — All Pydantic Request/Response Schemas"""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from models.enums import (
     PerformanceDimension,
     ReportStatus,
     ReviewCycleStatus,
+    ReviewStatus,
     Severity,
     UserRole,
 )
@@ -76,30 +77,57 @@ class UserUpdate(BaseModel):
 # ── Review Cycles ──────────────────────────────────────────────────────────────
 
 class ReviewCycleCreate(BaseModel):
+    title: str = Field(..., min_length=2, max_length=255)
+    start_date: date
+    end_date: date
+
+class ReviewCycleStatusUpdate(BaseModel):
+    status: ReviewCycleStatus
+
+class ReviewCycleResponse(OrmBase):
+    id: UUID
+    organization_id: UUID | None
+    title: str
+    start_date: date
+    end_date: date
+    status: ReviewCycleStatus
+    created_at: datetime
+    updated_at: datetime
+
+class PaginatedReviewCycles(BaseModel):
+    items: list[ReviewCycleResponse]
+    total: int
+    skip: int
+    limit: int
+    has_more: bool
+
+# ── Reviews ──────────────────────────────────────────────────────────────
+
+class ReviewCreate(BaseModel):
+    review_cycle_id: UUID
     employee_id: UUID
     title: str = Field(..., min_length=2, max_length=255)
     review_period_start: date
     review_period_end: date
 
+class ReviewStatusUpdate(BaseModel):
+    status: ReviewStatus
 
-class ReviewCycleStatusUpdate(BaseModel):
-    status: ReviewCycleStatus
-
-
-class ReviewCycleResponse(OrmBase):
+class ReviewResponse(OrmBase):
     id: UUID
+    review_cycle_id: UUID
     employee_id: UUID
     manager_id: UUID
+    organization_id: UUID | None
     title: str
     review_period_start: date
     review_period_end: date
-    status: ReviewCycleStatus
+    status: ReviewStatus
     created_at: datetime
     updated_at: datetime
 
-
-class PaginatedReviewCycles(BaseModel):
-    items: list[ReviewCycleResponse]
+class PaginatedReviews(BaseModel):
+    items: list[ReviewResponse]
     total: int
     skip: int
     limit: int
@@ -116,7 +144,7 @@ class InputSubmit(BaseModel):
 
 class InputResponse(OrmBase):
     id: UUID
-    review_cycle_id: UUID
+    review_id: UUID
     input_type: InputType
     content_text: str
     is_anonymized: bool
@@ -147,7 +175,7 @@ class AgentExecutionResponse(BaseModel):
 
 class PipelineStatusResponse(BaseModel):
     pipeline_run_id: str
-    review_cycle_id: str
+    review_id: str
     pipeline_status: str
     current_agent: str
     agent_executions: list[AgentExecutionResponse]
@@ -191,7 +219,7 @@ class BiasFlagResponse(OrmBase):
 
 class ReportResponse(OrmBase):
     id: UUID
-    review_cycle_id: UUID
+    review_id: UUID
     version: int
     status: ReportStatus
     executive_summary: str | None = None

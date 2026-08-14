@@ -4,6 +4,7 @@ import { ShieldAlert, CheckCircle2, AlertTriangle, BarChart3, FileText, ThumbsUp
 import { reportsApi, cyclesApi, type Report, type Claim } from '../api'
 import { useAuthStore } from '../store'
 import { confidenceBadge, biasSeverityColor } from '../utils'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { v4 as uuidv4 } from 'uuid'
 
 function EvidencePanel({ claim }: { claim: Claim }) {
@@ -140,7 +141,7 @@ export default function ReportDetailPage() {
   useEffect(() => { fetchReport() }, [reportId])
 
   if (loading) return <div style={{ textAlign: 'center', padding: 80 }}><div className="spinner-lg" style={{ margin: '0 auto' }} /></div>
-  if (!report) return <div className="empty-state"><div className="empty-title">Report not found</div></div>
+  if (!report) return <EmptyState title="Report not found" description="The report you are looking for does not exist." icon={FileText} />
 
   const canApprove = (user?.role === 'MANAGER' || user?.role === 'ADMIN') && report.status === 'PENDING_APPROVAL'
 
@@ -282,7 +283,7 @@ export default function ReportDetailPage() {
             <EvidencePanel key={claim.id} claim={claim} />
           ))}
           {report.claims.length === 0 && (
-            <div className="empty-state"><div className="empty-title">No claims generated yet</div></div>
+            <EmptyState title="No claims generated yet" description="Wait for the analysis to complete." size="sm" />
           )}
         </div>
       )}

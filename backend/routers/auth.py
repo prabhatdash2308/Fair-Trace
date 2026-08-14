@@ -1,4 +1,4 @@
-"""ReviewGuard AI — Auth Router"""
+"""FairTrace — Auth Router"""
 
 import traceback
 
@@ -11,7 +11,7 @@ from models.schemas import LoginRequest, TokenResponse
 from services.auth_service import authenticate_user, create_token_for_user
 from repositories import audit_repo
 from models.enums import AuditEventType
-from core.exceptions import ReviewGuardException
+from core.exceptions import FairTraceException
 
 logger = structlog.get_logger(__name__)
 
@@ -36,7 +36,7 @@ def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
 
     try:
         user = authenticate_user(db, body.email, body.password)
-    except ReviewGuardException:
+    except FairTraceException:
         # Re-raise domain exceptions (401 AuthenticationFailedError) — handled by app-level handler
         raise
     except Exception:

@@ -2,9 +2,9 @@
 ReviewGuard AI — Parser Exceptions
 """
 
-from core.exceptions import ReviewGuardException
+from core.exceptions import FairTraceException
 
-class ParserError(ReviewGuardException):
+class ParserError(FairTraceException):
     """Base exception for all parsing-related errors."""
     def __init__(self, message: str, error_code: str = "PARSER_ERROR", http_status: int = 500):
         self.error_code = error_code

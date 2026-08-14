@@ -1,4 +1,4 @@
-"""ReviewGuard AI — PerformanceClaim ORM Model"""
+"""FairTrace — PerformanceClaim ORM Model"""
 
 import uuid
 from typing import List

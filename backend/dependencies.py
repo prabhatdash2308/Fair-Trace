@@ -1,5 +1,5 @@
 """
-ReviewGuard AI — FastAPI Dependency Injection
+FairTrace — FastAPI Dependency Injection
 All Depends() factory functions are defined here and imported by routers.
 """
 
@@ -27,6 +27,7 @@ class CurrentUser:
     role: UserRole
     full_name: str
     manager_id: UUID | None = None
+    organization_id: UUID | None = None
 
 
 # ── Session Dependency ─────────────────────────────────────────────────────────
@@ -56,6 +57,7 @@ def get_current_user(
         role=UserRole(payload["role"]),
         full_name=payload["full_name"],
         manager_id=UUID(payload["manager_id"]) if payload.get("manager_id") else None,
+        organization_id=UUID(payload["organization_id"]) if payload.get("organization_id") else None,
     )
 
 
@@ -64,8 +66,8 @@ def get_current_user(
 def require_admin(
     current_user: CurrentUser = Depends(get_current_user),
 ) -> CurrentUser:
-    """Requires ADMIN role. Raises ForbiddenError (403) otherwise."""
-    if current_user.role != UserRole.ADMIN:
+    """Requires ORG_ADMIN, SUPER_ADMIN or HR_ADMIN role. Raises ForbiddenError (403) otherwise."""
+    if current_user.role not in (UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN, UserRole.HR_ADMIN):
         raise ForbiddenError("This action requires ADMIN privileges.")
     return current_user
 
@@ -83,7 +85,7 @@ def require_manager_or_admin(
     current_user: CurrentUser = Depends(get_current_user),
 ) -> CurrentUser:
     """Requires MANAGER or ADMIN role."""
-    if current_user.role not in (UserRole.MANAGER, UserRole.ADMIN):
+    if current_user.role not in (UserRole.MANAGER, UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN, UserRole.HR_ADMIN):
         raise ForbiddenError("This action requires MANAGER or ADMIN privileges.")
     return current_user
 

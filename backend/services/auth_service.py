@@ -1,4 +1,4 @@
-"""ReviewGuard AI — Auth Service"""
+"""FairTrace — Auth Service"""
 
 from datetime import timedelta
 
@@ -36,6 +36,7 @@ def create_token_for_user(user: User) -> dict:
         "role": user.role.value,
         "full_name": user.full_name,
         "manager_id": str(user.manager_id) if user.manager_id else None,
+        "organization_id": str(user.organization_id) if user.organization_id else None,
     }
     access_token = create_access_token(token_data)
     return {

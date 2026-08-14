@@ -1,4 +1,4 @@
-"""ReviewGuard AI — BiasFlag ORM Model"""
+"""FairTrace — BiasFlag ORM Model"""
 
 import uuid
 from datetime import datetime

@@ -103,7 +103,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   // Generate initials for user avatar
   const initials = user?.full_name
     ? user.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
-    : 'RG';
+    : 'FT';
 
   const renderNavItem = (item: { name: string; href: string; icon: React.ElementType }) => {
     const Icon = item.icon;
@@ -195,7 +195,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               className="overflow-hidden"
             >
               <span className="text-heading-sm font-semibold whitespace-nowrap tracking-tight">
-                ReviewGuard <span className="text-primary">AI</span>
+                FairTrace
               </span>
             </motion.div>
           )}

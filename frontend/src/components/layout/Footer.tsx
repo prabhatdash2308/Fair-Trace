@@ -11,7 +11,7 @@ export function Footer() {
     <footer className="mt-auto border-t border-border bg-card/50 px-8 py-3">
       <div className="max-w-screen-xl mx-auto flex items-center justify-between">
         <span className="text-label text-muted-foreground/60">
-          © {year} ReviewGuard AI. All rights reserved.
+          © {year} FairTrace. All rights reserved.
         </span>
         <span className="font-mono text-[10px] text-muted-foreground/40 tracking-wider">
           v{env.appVersion} · {env.appEnv}

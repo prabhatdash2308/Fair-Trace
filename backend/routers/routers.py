@@ -1,4 +1,4 @@
-"""ReviewGuard AI — Users, ReviewCycles, Inputs, Pipeline, Reports, Audit Routers"""
+"""FairTrace — Users, ReviewCycles, Inputs, Pipeline, Reports, Audit Routers"""
 
 from uuid import UUID
 
@@ -32,7 +32,7 @@ from models.schemas import (
 )
 from core.exceptions import ForbiddenError, NotFoundError
 from repositories import report_repo, audit_repo
-from services import domain_services, pipeline_service
+from services import domain_services, pipeline_service, review_cycle_service
 from models.enums import ApprovalAction
 
 
@@ -91,7 +91,7 @@ def create_cycle(
     db: Session = Depends(get_db),
     actor: CurrentUser = Depends(require_manager_or_admin),
 ):
-    return domain_services.create_review_cycle(db, body, actor)
+    return review_cycle_service.create_cycle(db, body, actor)
 
 
 @cycles_router.get("", summary="List Review Cycles", tags=["Review Cycles"])
@@ -101,7 +101,7 @@ def list_cycles(
     db: Session = Depends(get_db),
     actor: CurrentUser = Depends(require_any_authenticated),
 ):
-    items, total = domain_services.list_review_cycles(db, actor, skip, limit)
+    items, total = review_cycle_service.list_cycles(db, actor, skip, limit)
     return PaginatedReviewCycles(
         items=[ReviewCycleResponse.model_validate(c) for c in items],
         total=total,
@@ -118,7 +118,7 @@ def get_cycle(
     db: Session = Depends(get_db),
     actor: CurrentUser = Depends(require_any_authenticated),
 ):
-    return domain_services.get_review_cycle(db, cycle_id, actor)
+    return review_cycle_service.get_cycle(db, cycle_id, actor)
 
 
 @cycles_router.patch("/{cycle_id}/status", response_model=ReviewCycleResponse,
@@ -129,7 +129,7 @@ def update_cycle_status(
     db: Session = Depends(get_db),
     actor: CurrentUser = Depends(require_manager_or_admin),
 ):
-    return domain_services.update_cycle_status(db, cycle_id, body.status, actor)
+    return review_cycle_service.update_status(db, cycle_id, body.status, actor)
 
 
 # ── Inputs Router ──────────────────────────────────────────────────────────────
@@ -148,13 +148,14 @@ def submit_input(
     return domain_services.submit_input(db, cycle_id, body, actor)
 
 
-@inputs_router.get("/{cycle_id}/inputs", summary="List Inputs for Cycle", tags=["Inputs"])
+@inputs_router.get("/{review_id}/inputs", summary="List Inputs for Review", tags=["Inputs"])
 def list_inputs(
-    cycle_id: UUID,
+    review_id: UUID,
     db: Session = Depends(get_db),
     actor: CurrentUser = Depends(require_manager_or_admin),
 ):
-    inputs = domain_services.list_inputs_for_cycle(db, cycle_id, actor)
+    from services import review_service
+    inputs = review_service.list_inputs_for_review(db, review_id, actor)
     return [InputResponse.model_validate(i) for i in inputs]
 
 
@@ -164,7 +165,7 @@ pipeline_router = APIRouter()
 
 
 @pipeline_router.post(
-    "/review-cycles/{cycle_id}/pipeline/trigger",
+    "/reviews/{review_id}/pipeline/trigger",
     response_model=PipelineTriggerResponse,
     status_code=202,
     summary="Trigger AI Pipeline",
@@ -172,16 +173,16 @@ pipeline_router = APIRouter()
     tags=["Pipeline"],
 )
 def trigger_pipeline(
-    cycle_id: UUID,
+    review_id: UUID,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     actor: CurrentUser = Depends(require_manager_or_admin),
 ):
-    run_id = pipeline_service.initialize_pipeline(db, str(cycle_id), actor)
+    run_id = pipeline_service.initialize_pipeline(db, str(review_id), actor)
     background_tasks.add_task(
         pipeline_service.execute_pipeline,
         pipeline_run_id=run_id,
-        review_cycle_id=str(cycle_id),
+        review_id=str(review_id),
     )
     return PipelineTriggerResponse(pipeline_run_id=run_id)
 
@@ -204,6 +205,40 @@ reports_router = APIRouter()
 
 
 @reports_router.get(
+    "",
+    summary="List Reports",
+    description="Lists all reports accessible to the current user, scoped by role.",
+    tags=["Reports"],
+)
+def list_reports(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    actor: CurrentUser = Depends(require_any_authenticated),
+):
+    from sqlalchemy import select
+    from models.db.report import Report
+    from models.db.review import Review
+
+    stmt = select(Report).join(Review, Report.review_id == Review.id)
+
+    if actor.role == UserRole.EMPLOYEE:
+        from models.enums import ReportStatus
+        stmt = stmt.where(
+            Review.employee_id == actor.id,
+            Report.status == ReportStatus.FINALIZED,
+        )
+    elif actor.role == UserRole.MANAGER:
+        stmt = stmt.where(Review.manager_id == actor.id)
+    # ADMIN sees all
+
+    stmt = stmt.order_by(Report.generated_at.desc()).offset(skip).limit(limit)
+    reports = db.scalars(stmt).all()
+    return [ReportResponse.model_validate(r) for r in reports]
+
+
+
+@reports_router.get(
     "/{report_id}",
     response_model=ReportResponse,
     summary="Get Performance Report",
@@ -219,10 +254,16 @@ def get_report(
     if not report:
         raise NotFoundError(f"Report {report_id} not found.")
 
+    review = report.review
+
+    # MANAGER access gate — can only view reports for cycles they own
+    if actor.role == UserRole.MANAGER:
+        if review.manager_id != actor.id:
+            raise ForbiddenError("You can only view reports for your own reviews.")
+
     # EMPLOYEE access gate
     if actor.role == UserRole.EMPLOYEE:
-        cycle = report.review_cycle
-        if cycle.employee_id != actor.id:
+        if review.employee_id != actor.id:
             raise ForbiddenError("You can only view your own reports.")
         from models.enums import ReportStatus
         if report.status != ReportStatus.FINALIZED:
@@ -240,6 +281,7 @@ def get_report(
 def approval_action(
     report_id: UUID,
     body: ApprovalActionRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     actor: CurrentUser = Depends(require_manager_or_admin),
 ):
@@ -250,6 +292,7 @@ def approval_action(
         reason=body.reason,
         actor=actor,
         idempotency_key=body.idempotency_key,
+        background_tasks=background_tasks,
     )
 
 

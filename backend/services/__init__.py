@@ -1,1 +1,1 @@
-"""ReviewGuard AI — Services package init."""
+"""FairTrace — Services package init."""

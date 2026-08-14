@@ -20,7 +20,7 @@ export function RouteErrorBoundary() {
       showRetry = false;
     } else if (error.status === 500) {
       title = "Server Error";
-      message = "The ReviewGuard AI engine is currently experiencing issues. Please try again.";
+      message = "The FairTrace engine is currently experiencing issues. Please try again.";
       Icon = AlertOctagon;
     } else if (error.status === 503) {
       title = "Service Unavailable";
@@ -29,7 +29,7 @@ export function RouteErrorBoundary() {
     }
   } else if (error instanceof TypeError && error.message.includes('fetch')) {
     title = "Network Failure";
-    message = "Unable to connect to ReviewGuard AI services. Please check your internet connection.";
+    message = "Unable to connect to FairTrace services. Please check your internet connection.";
     Icon = WifiOff;
   }
 

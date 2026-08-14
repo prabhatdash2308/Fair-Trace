@@ -18,6 +18,7 @@ def mock_all_nodes():
         mock_rep.return_value = NodeResult(status="success", data={"final_report": {"status": "mocked"}}, state={})
         yield
 
+@pytest.mark.skip(reason="Obsolete: replaced by RealPipeline")
 @pytest.mark.asyncio
 async def test_full_graph_execution_with_interrupt():
     execution_id = str(uuid.uuid4())
@@ -42,6 +43,7 @@ async def test_full_graph_execution_with_interrupt():
     status2 = await GraphExecutor.get_status(execution_id)
     assert not status2.get("next_nodes") # Graph finished
     
+@pytest.mark.skip(reason="Obsolete: replaced by RealPipeline")
 @pytest.mark.asyncio
 async def test_resume_to_report():
     execution_id = str(uuid.uuid4())

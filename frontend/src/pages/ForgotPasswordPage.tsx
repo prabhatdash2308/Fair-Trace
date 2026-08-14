@@ -161,7 +161,7 @@ export function ForgotPasswordPage() {
 
         {/* Version note below the card */}
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          ReviewGuard AI · Enterprise Edition
+          FairTrace · Enterprise Edition
         </p>
       </motion.div>
     </div>

@@ -237,7 +237,7 @@ export function GlobalSearch() {
                     </span>
                   </div>
                   <span className="text-[10px] text-muted-foreground/40 font-medium">
-                    ReviewGuard AI
+                    FairTrace
                   </span>
                 </div>
               </Command>

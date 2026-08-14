@@ -3,9 +3,9 @@ ReviewGuard AI — Storage Exceptions
 Normalized exceptions for the storage layer.
 """
 
-from core.exceptions import ReviewGuardException
+from core.exceptions import FairTraceException
 
-class StorageError(ReviewGuardException):
+class StorageError(FairTraceException):
     """Base exception for all storage-related errors."""
     def __init__(self, message: str, error_code: str = "STORAGE_ERROR", http_status: int = 500):
         self.error_code = error_code

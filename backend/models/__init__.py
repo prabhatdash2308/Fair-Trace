@@ -1,5 +1,5 @@
 """
-ReviewGuard AI — Models package init.
+FairTrace — Models package init.
 Import all ORM models here so Alembic autogenerate can discover them.
 """
 

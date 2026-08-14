@@ -1,4 +1,4 @@
-"""ReviewGuard AI — ReviewInput ORM Model"""
+"""FairTrace — ReviewInput ORM Model"""
 
 import uuid
 from datetime import datetime
@@ -17,8 +17,8 @@ class ReviewInput(Base, TimestampMixin):
     __tablename__ = "review_inputs"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    review_cycle_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("review_cycles.id"), nullable=False, index=True
+    review_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("reviews.id"), nullable=False, index=True
     )
     submitted_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     input_type: Mapped[InputType] = mapped_column(Enum(InputType, name="input_type"), nullable=False, index=True)
@@ -28,7 +28,7 @@ class ReviewInput(Base, TimestampMixin):
     qdrant_document_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     # Relationships
-    review_cycle: Mapped["ReviewCycle"] = relationship("ReviewCycle", back_populates="inputs")
+    review: Mapped["Review"] = relationship("Review", back_populates="inputs")
     submitter: Mapped["User"] = relationship("User", foreign_keys=[submitted_by], back_populates="submitted_inputs")
     citations: Mapped[List["EvidenceCitation"]] = relationship("EvidenceCitation", back_populates="source_input")
     bias_flags: Mapped[List["BiasFlag"]] = relationship("BiasFlag", back_populates="source_input")

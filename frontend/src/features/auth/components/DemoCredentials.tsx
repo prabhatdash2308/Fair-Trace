@@ -17,9 +17,9 @@ interface DemoAccount {
 }
 
 const DEMO_ACCOUNTS: DemoAccount[] = [
-  { role: 'Administrator', email: 'admin@reviewguard.ai', password: 'admin123456' },
-  { role: 'Manager',       email: 'manager@reviewguard.ai', password: 'manager123456' },
-  { role: 'Employee',      email: 'employee@reviewguard.ai', password: 'employee123456' },
+  { role: 'Administrator', email: 'admin@fairtrace.ai', password: 'admin123456' },
+  { role: 'Manager',       email: 'manager@fairtrace.ai', password: 'manager123456' },
+  { role: 'Employee',      email: 'employee@fairtrace.ai', password: 'employee123456' },
 ];
 
 function CopyButton({ value, label }: { value: string; label: string }) {

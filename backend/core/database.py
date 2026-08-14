@@ -1,5 +1,5 @@
 """
-ReviewGuard AI — Database Engine and Session Management
+FairTrace — Database Engine and Session Management
 Single source of truth for all SQLAlchemy configuration.
 """
 

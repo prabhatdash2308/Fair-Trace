@@ -1,4 +1,4 @@
-"""ReviewGuard AI — User Repository"""
+"""FairTrace — User Repository"""
 
 from uuid import UUID
 from sqlalchemy import select

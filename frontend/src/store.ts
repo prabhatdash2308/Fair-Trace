@@ -1,4 +1,4 @@
-// ReviewGuard AI — Zustand Auth Store
+// FairTrace — Zustand Auth Store
 
 import { create } from 'zustand'
 import type { UserRole } from './api'

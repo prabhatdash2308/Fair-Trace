@@ -62,12 +62,13 @@ def _make_token(role: UserRole, user_id: str = "00000000-0000-0000-0000-00000000
         "role": role.value,
         "full_name": f"Test {role.value}",
         "manager_id": None,
+        "organization_id": "00000000-0000-0000-0000-000000000000",
     })
 
 
 @pytest.fixture()
 def admin_headers():
-    return {"Authorization": f"Bearer {_make_token(UserRole.ADMIN)}"}
+    return {"Authorization": f"Bearer {_make_token(UserRole.ORG_ADMIN)}"}
 
 
 @pytest.fixture()

@@ -51,8 +51,13 @@ approval_agent = HumanApprovalAgent(
 )
 finalization_agent = FinalizationAgent()
 
-class MockGraph:
-    def invoke(self, state):
-        return state
+from app.ai.pipeline.real_pipeline import RealPipeline
 
-pipeline_graph = MockGraph()
+# Wire up the real pipeline with all agents
+pipeline_graph = RealPipeline(
+    intake_agent=intake_agent,
+    bias_agent=bias_agent,
+    analysis_agent=analysis_agent,
+    explainability_agent=explainability_agent,
+    report_agent=report_agent,
+)

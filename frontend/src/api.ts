@@ -1,4 +1,4 @@
-// ReviewGuard AI — Axios API Client + TypeScript Types
+// FairTrace — Axios API Client + TypeScript Types
 
 import axios from 'axios'
 
@@ -24,8 +24,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    // In DEMO MODE we never redirect to /login on 401 — backend auth is irrelevant
-    const DEMO_MODE = true; // mirrors config/demo.ts
+    // Only redirect to /login on 401 if not in demo mode
+    const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
     if (!DEMO_MODE && err.response?.status === 401) {
       localStorage.removeItem('rg_token')
       localStorage.removeItem('rg_user')

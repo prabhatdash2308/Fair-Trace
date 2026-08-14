@@ -1,5 +1,5 @@
 """
-ReviewGuard AI — FastAPI Application Entry Point
+FairTrace — FastAPI Application Entry Point
 All middleware, routers, exception handlers, and startup checks are registered here.
 No business logic lives in this file.
 """
@@ -12,18 +12,18 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
 from config import settings
-from core.exceptions import ReviewGuardException
+from core.exceptions import FairTraceException
 from app.ai.services.qdrant_service import ensure_collection, health_check as qdrant_health
 from middleware.correlation_middleware import CorrelationMiddleware
 from middleware.logging_middleware import LoggingMiddleware
 from routers.routers import (
-    users_router,
-    cycles_router,
-    inputs_router,
     pipeline_router,
     reports_router,
     audit_router,
+    cycles_router,
 )
+from routers.people import people_router
+from routers.reviews import reviews_router
 from routers.auth import router as auth_router
 from routers.uploads import router as uploads_router
 from routers.embeddings import router as embeddings_router
@@ -51,7 +51,7 @@ logger = structlog.get_logger(__name__)
 # ── App Instance ───────────────────────────────────────────────────────────────
 
 app = FastAPI(
-    title="ReviewGuard AI API",
+    title="FairTrace API",
     version=settings.app_version,
     description=(
         "**Evidence-Grounded, Bias-Aware Multi-Agent Performance Review Intelligence**\n\n"
@@ -64,7 +64,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-    contact={"name": "ReviewGuard AI Team", "email": "team@reviewguard.ai"},
+    contact={"name": "FairTrace Team", "email": "team@fairtrace.ai"},
     license_info={"name": "MIT"},
 )
 
@@ -83,8 +83,8 @@ app.add_middleware(CorrelationMiddleware)
 
 # ── Exception Handlers ─────────────────────────────────────────────────────────
 
-@app.exception_handler(ReviewGuardException)
-async def review_guard_exception_handler(request: Request, exc: ReviewGuardException) -> JSONResponse:
+@app.exception_handler(FairTraceException)
+async def fair_trace_exception_handler(request: Request, exc: FairTraceException) -> JSONResponse:
     return JSONResponse(
         status_code=exc.http_status,
         content={
@@ -139,7 +139,7 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
 API_V1 = "/api/v1"
 
 app.include_router(auth_router,       prefix=f"{API_V1}/auth",          tags=["Authentication"])
-app.include_router(users_router,      prefix=f"{API_V1}/users",          tags=["Users"])
+
 app.include_router(uploads_router,    prefix=f"{API_V1}/uploads",        tags=["Document Uploads"])
 app.include_router(embeddings_router, prefix=f"{API_V1}/embeddings",    tags=["Embeddings"])
 app.include_router(retrieval_router,  prefix=f"{API_V1}",                tags=["Retrieval"])
@@ -150,8 +150,9 @@ app.include_router(explainability_router, prefix=f"{API_V1}",            tags=["
 app.include_router(report_router,         prefix=f"{API_V1}",            tags=["Report Generation"])
 app.include_router(workflows_router,      prefix=f"{API_V1}",            tags=["Workflows"])
 app.include_router(export_router,         prefix=f"{API_V1}",            tags=["Export"])
-app.include_router(cycles_router,     prefix=f"{API_V1}/review-cycles",  tags=["Review Cycles"])
-app.include_router(inputs_router,     prefix=f"{API_V1}/review-cycles",  tags=["Inputs"])
+app.include_router(people_router,         prefix=f"{API_V1}/people",      tags=["People"])
+app.include_router(reviews_router,        prefix=f"{API_V1}/reviews",     tags=["Reviews"])
+app.include_router(cycles_router,         prefix=f"{API_V1}/review-cycles", tags=["Review Cycles"])
 app.include_router(pipeline_router,   prefix=f"{API_V1}",                tags=["Pipeline"])
 app.include_router(reports_router,    prefix=f"{API_V1}/reports",        tags=["Reports"])
 app.include_router(audit_router,      prefix=f"{API_V1}/audit",          tags=["Audit"])

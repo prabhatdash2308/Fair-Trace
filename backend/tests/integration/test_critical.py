@@ -103,12 +103,12 @@ class TestConfidenceEngine:
 # ── RBAC Tests ─────────────────────────────────────────────────────────────────
 
 class TestRBAC:
-    def test_employee_cannot_access_users_endpoint(self, test_client, employee_headers):
-        resp = test_client.get("/api/v1/users", headers=employee_headers)
+    def test_employee_cannot_create_person(self, test_client, employee_headers):
+        resp = test_client.post("/api/v1/people", headers=employee_headers, json={"email": "a@b.com", "password": "password123", "full_name": "A B", "role": "EMPLOYEE"})
         assert resp.status_code == 403
 
     def test_unauthenticated_request_returns_401(self, test_client):
-        resp = test_client.get("/api/v1/users")
+        resp = test_client.get("/api/v1/people")
         assert resp.status_code == 401
 
     def test_health_endpoint_is_public(self, test_client):

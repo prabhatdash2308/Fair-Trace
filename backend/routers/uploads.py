@@ -1,5 +1,5 @@
 """
-ReviewGuard AI — Uploads Router
+FairTrace — Uploads Router
 Secure API for document ingestion, retrieval, and deletion.
 """
 import uuid
@@ -160,13 +160,21 @@ async def embed_document(
     """
     Generates embeddings for document chunks and upserts them to Qdrant.
     Idempotent operation (skips already embedded chunks).
+    Only the document owner or ADMIN can trigger embedding.
     """
+    # Ownership check — verify caller owns the document
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+    if doc.owner_id != current_user.id and current_user.role.value != "ADMIN":
+        raise ForbiddenError("You do not have permission to embed this document.")
+
     from app.ai.embeddings.service import EmbeddingService
     from app.vectorstore.qdrant_service import QdrantService
-    
+
     vector_store = QdrantService(settings=settings)
     embedding_service = EmbeddingService(db=db, settings=settings, vector_store=vector_store)
-    
+
     try:
         stats = await embedding_service.embed_document(
             document_id=str(document_id),

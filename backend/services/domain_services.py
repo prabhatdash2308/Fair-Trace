@@ -1,4 +1,4 @@
-"""ReviewGuard AI — User, ReviewCycle, ReviewInput Services"""
+"""FairTrace — User, ReviewCycle, ReviewInput Services"""
 
 from uuid import UUID
 
@@ -73,6 +73,7 @@ def create_review_cycle(db: Session, data: ReviewCycleCreate, actor: CurrentUser
         "employee_id": data.employee_id,
         "manager_id": manager_id,
         "created_by": actor.id,
+        "organization_id": actor.organization_id,
         "title": data.title,
         "review_period_start": data.review_period_start,
         "review_period_end": data.review_period_end,

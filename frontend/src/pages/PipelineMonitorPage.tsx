@@ -113,7 +113,7 @@ export default function PipelineMonitorPage() {
           ← Back to Cycle
         </button>
         <h1 className="page-title">AI Pipeline Monitor</h1>
-        <p className="page-subtitle">Real-time execution of the 9-agent ReviewGuard pipeline</p>
+        <p className="page-subtitle">Real-time execution of the 9-agent FairTrace pipeline</p>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}

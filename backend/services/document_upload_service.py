@@ -1,5 +1,5 @@
 """
-ReviewGuard AI — Document Upload Service
+FairTrace — Document Upload Service
 Orchestrates the secure ingestion, validation, and storage of documents.
 """
 import os

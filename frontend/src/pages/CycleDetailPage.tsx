@@ -4,6 +4,7 @@ import { Plus, Play, FileText, Upload, Zap, ChevronRight } from 'lucide-react'
 import { cyclesApi, reportsApi, type ReviewCycle, type ReviewInput, type Report } from '../api'
 import { useAuthStore } from '../store'
 import { statusBadge, formatDate } from '../utils'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 function SubmitInputModal({ cycleId, onClose, onDone }: { cycleId: string; onClose: () => void; onDone: () => void }) {
   const [inputType, setInputType] = useState('SELF_ASSESSMENT')
@@ -89,7 +90,7 @@ export default function CycleDetailPage() {
   const canTrigger = cycle?.status === 'ACTIVE' && inputs.length > 0 && (user?.role === 'MANAGER' || user?.role === 'ADMIN')
 
   if (loading) return <div style={{ textAlign: 'center', padding: 80 }}><div className="spinner-lg" style={{ margin: '0 auto' }} /></div>
-  if (!cycle) return <div className="empty-state"><div className="empty-title">Cycle not found</div></div>
+  if (!cycle) return <EmptyState title="Cycle not found" description="The review cycle you are looking for does not exist." icon={FileText} />
 
   return (
     <div className="fade-in">
@@ -138,11 +139,12 @@ export default function CycleDetailPage() {
             </div>
             <div style={{ padding: '12px 16px' }}>
               {inputs.length === 0 ? (
-                <div className="empty-state" style={{ padding: '30px 20px' }}>
-                  <div className="empty-icon" style={{ fontSize: 32 }}>📝</div>
-                  <div className="empty-title" style={{ fontSize: 15 }}>No inputs yet</div>
-                  <div className="empty-desc">Submit review inputs to enable pipeline analysis.</div>
-                </div>
+                <EmptyState
+                  icon={FileText}
+                  title="No inputs yet"
+                  description="Submit review inputs to enable pipeline analysis."
+                  size="sm"
+                />
               ) : inputs.map(inp => (
                 <div key={inp.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--border-subtle)' }}>
                   <div className="flex items-center justify-between mb-1">

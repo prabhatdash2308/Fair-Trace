@@ -1,8 +1,8 @@
-# ReviewGuard AI
+# FairTrace
 
 **Enterprise AI Performance Review Platform**
 
-ReviewGuard AI is a deterministic, explainable, and secure multi-agent platform designed to help organizations generate transparent and auditable AI-assisted employee performance reviews. It eliminates cognitive bias and standardizes evaluations across the enterprise.
+FairTrace is a deterministic, explainable, and secure multi-agent platform designed to help organizations generate transparent and auditable AI-assisted employee performance reviews. It eliminates cognitive bias and standardizes evaluations across the enterprise.
 
 ## Core Capabilities
 - **Radical Explainability**: Every AI decision, score, and bias alert is tied directly to source evidence.
@@ -16,7 +16,7 @@ ReviewGuard AI is a deterministic, explainable, and secure multi-agent platform 
 - **Infrastructure**: Docker, JWT Authentication
 
 ## Production Deployment
-ReviewGuard AI is built for scalable, zero-trust environments.
+FairTrace is built for scalable, zero-trust environments.
 
 ### Prerequisites
 - Docker & Docker Compose
@@ -46,4 +46,4 @@ We enforce strict architectural principles:
 - **Semantic Design**: Use strictly defined `surface`, `danger`, `success`, and `warning` tokens. Avoid legacy arbitrary colors.
 
 ## License
-© 2026 ReviewGuard AI Inc. All rights reserved.
+© 2026 FairTrace Inc. All rights reserved.

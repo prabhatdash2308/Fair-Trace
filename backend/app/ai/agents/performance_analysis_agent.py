@@ -57,6 +57,46 @@ def _calculate_confidence(state: dict) -> dict:
         "explanation": f"Computed from {evidence_count} evidence items with average similarity {avg_sim:.2f}, spanning {input_types} source types, penalized by {high_bias} high biases."
     }
 
+def _calculate_performance_score(state: ReviewState, competencies: Dict[str, float]) -> float:
+    """
+    Deterministically calculates the overall performance score.
+    Does NOT base the score only on evidence coverage; uses LLM competency evaluation
+    and applies explicit, deterministic bias penalties (e.g., RECENCY -> -3.0).
+    """
+    if not competencies:
+        return 0.0
+        
+    base_score = sum(competencies.values()) / len(competencies)
+    
+    # Explicit bias penalties
+    bias_penalty_map = {
+        "RECENCY": 3.0,
+        "HALO": 5.0,
+        "HORN": 5.0,
+        "LENIENCY": 4.0,
+        "SEVERITY": 4.0,
+        "IMBALANCE": 2.0,
+        "UNSUPPORTED": 5.0
+    }
+    
+    total_penalty = 0.0
+    if hasattr(state, 'bias') and state.bias.findings:
+        for finding in state.bias.findings:
+            b_type = finding.bias_type.name if hasattr(finding.bias_type, "name") else str(finding.bias_type).split(".")[-1]
+            penalty = bias_penalty_map.get(b_type.upper(), 2.0)
+            
+            # Severity multiplier
+            severity = finding.severity.name if hasattr(finding.severity, "name") else str(finding.severity).split(".")[-1]
+            if severity.upper() == "HIGH":
+                penalty *= 1.5
+            elif severity.upper() == "LOW":
+                penalty *= 0.5
+                
+            total_penalty += penalty
+            
+    final_score = max(0.0, min(100.0, base_score - total_penalty))
+    return final_score
+
 from app.ai.services.llm import LLMService, LLMRequest
 from app.ai.prompts import PromptRegistry, PromptMetadata
 
@@ -145,7 +185,7 @@ class PerformanceAnalysisAgent(BaseAgent):
         state.analysis.strengths = structured_res.strengths
         state.analysis.weaknesses = structured_res.improvements
         state.analysis.competencies = structured_res.competencies
-        state.analysis.overall_score = sum(structured_res.competencies.values()) / len(structured_res.competencies) if structured_res.competencies else 0.0
+        state.analysis.overall_score = _calculate_performance_score(state, structured_res.competencies)
         state.analysis.confidence_score = structured_res.confidence
         state.analysis.reasoning = structured_res.reasoning
         state.analysis.supporting_citations = structured_res.supporting_citations

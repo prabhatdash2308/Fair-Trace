@@ -169,7 +169,7 @@ export function Settings() {
                   </div>
                   <div>
                     <CardTitle>AI Configuration</CardTitle>
-                    <CardDescription>Adjust how ReviewGuard AI analyzes performance data.</CardDescription>
+                    <CardDescription>Adjust how FairTrace analyzes performance data.</CardDescription>
                   </div>
                 </div>
               </CardHeader>

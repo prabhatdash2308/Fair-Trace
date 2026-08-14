@@ -1,10 +1,11 @@
-"""ReviewGuard AI — ReviewInput, Report, BiasFlag, EvidenceCitation, AuditEvent Repositories"""
+"""FairTrace — ReviewInput, Report, BiasFlag, EvidenceCitation, AuditEvent Repositories"""
 
 from uuid import UUID
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session, joinedload
 
 from models.db.review_input import ReviewInput
+from models.db.performance_claim import PerformanceClaim
 from models.db.report import Report
 from models.db.bias_flag import BiasFlag
 from models.db.evidence_citation import EvidenceCitation
@@ -19,14 +20,14 @@ class ReviewInputRepository(BaseRepository[ReviewInput]):
     def __init__(self):
         super().__init__(ReviewInput)
 
-    def list_for_cycle(self, db: Session, cycle_id: UUID) -> list[ReviewInput]:
+    def list_for_cycle(self, db: Session, review_id: UUID) -> list[ReviewInput]:
         return list(
-            db.scalars(select(ReviewInput).where(ReviewInput.review_cycle_id == cycle_id)).all()
+            db.scalars(select(ReviewInput).where(ReviewInput.review_id == review_id)).all()
         )
 
-    def count_for_cycle(self, db: Session, cycle_id: UUID) -> int:
+    def count_for_cycle(self, db: Session, review_id: UUID) -> int:
         return db.scalar(
-            select(func.count(ReviewInput.id)).where(ReviewInput.review_cycle_id == cycle_id)
+            select(func.count(ReviewInput.id)).where(ReviewInput.review_id == review_id)
         ) or 0
 
     def update_qdrant_id(self, db: Session, input_id: UUID, qdrant_doc_id: str) -> None:
@@ -46,32 +47,32 @@ class ReportRepository(BaseRepository[Report]):
     def __init__(self):
         super().__init__(Report)
 
-    def get_current_for_cycle(self, db: Session, cycle_id: UUID) -> Report | None:
+    def get_current_for_cycle(self, db: Session, review_id: UUID) -> Report | None:
         return db.scalar(
             select(Report)
             .options(
                 joinedload(Report.claims).joinedload("citations"),
                 joinedload(Report.bias_flags),
             )
-            .where(Report.review_cycle_id == cycle_id, Report.is_current == True)
+            .where(Report.review_id == review_id, Report.is_current == True)
         )
 
     def get_with_full_details(self, db: Session, report_id: UUID) -> Report | None:
         return db.scalar(
             select(Report)
             .options(
-                joinedload(Report.claims).joinedload("citations"),
+                joinedload(Report.claims).joinedload(PerformanceClaim.citations),
                 joinedload(Report.bias_flags),
                 joinedload(Report.approver),
             )
             .where(Report.id == report_id)
         )
 
-    def get_versions_for_cycle(self, db: Session, cycle_id: UUID) -> list[Report]:
+    def get_versions_for_cycle(self, db: Session, review_id: UUID) -> list[Report]:
         return list(
             db.scalars(
                 select(Report)
-                .where(Report.review_cycle_id == cycle_id)
+                .where(Report.review_id == review_id)
                 .order_by(Report.version.desc())
             ).all()
         )
@@ -81,10 +82,10 @@ class ReportRepository(BaseRepository[Report]):
             select(Report).where(Report.approval_idempotency_key == key)
         )
 
-    def mark_previous_not_current(self, db: Session, cycle_id: UUID) -> None:
+    def mark_previous_not_current(self, db: Session, review_id: UUID) -> None:
         """Set is_current=False on all existing reports for a cycle (before inserting new version)."""
         reports = db.scalars(
-            select(Report).where(Report.review_cycle_id == cycle_id, Report.is_current == True)
+            select(Report).where(Report.review_id == review_id, Report.is_current == True)
         ).all()
         for r in reports:
             r.is_current = False

@@ -1,20 +1,47 @@
-"""ReviewGuard AI — All Enum Definitions (single import point)"""
+"""FairTrace — All Enum Definitions (single import point)"""
 import enum
 
 
 class UserRole(str, enum.Enum):
-    ADMIN = "ADMIN"
+    SUPER_ADMIN = "SUPER_ADMIN"
+    ORG_ADMIN = "ORG_ADMIN"
+    HR_ADMIN = "HR_ADMIN"
     MANAGER = "MANAGER"
     EMPLOYEE = "EMPLOYEE"
+    REVIEWER = "REVIEWER"
 
 
 class ReviewCycleStatus(str, enum.Enum):
     DRAFT = "DRAFT"
     ACTIVE = "ACTIVE"
-    PROCESSING = "PROCESSING"
-    PENDING_APPROVAL = "PENDING_APPROVAL"
     COMPLETED = "COMPLETED"
     CANCELLED = "CANCELLED"
+
+
+class ReviewStatus(str, enum.Enum):
+    DRAFT = "DRAFT"
+    IN_PROGRESS = "IN_PROGRESS"
+    AI_PROCESSING = "AI_PROCESSING"
+    MANAGER_REVIEW = "MANAGER_REVIEW"
+    PENDING_APPROVAL = "PENDING_APPROVAL"
+    APPROVED = "APPROVED"
+    EMPLOYEE_ACKNOWLEDGED = "EMPLOYEE_ACKNOWLEDGED"
+    COMPLETED = "COMPLETED"
+
+
+class GoalStatus(str, enum.Enum):
+    NOT_STARTED = "NOT_STARTED"
+    ON_TRACK = "ON_TRACK"
+    AT_RISK = "AT_RISK"
+    BLOCKED = "BLOCKED"
+    COMPLETED = "COMPLETED"
+
+
+class FeedbackType(str, enum.Enum):
+    PEER = "PEER"
+    MANAGER = "MANAGER"
+    SELF = "SELF"
+    GENERAL = "GENERAL"
 
 
 class ReportStatus(str, enum.Enum):

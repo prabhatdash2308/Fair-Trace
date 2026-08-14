@@ -31,7 +31,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   
   private handleReportIssue = () => {
     // In a real app this might open an Intercom widget or mailto link
-    window.location.href = 'mailto:support@reviewguard.ai?subject=Platform%20Crash%20Report';
+    window.location.href = 'mailto:support@fairtrace.ai?subject=Platform%20Crash%20Report';
   };
 
   public render() {

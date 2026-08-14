@@ -1,5 +1,5 @@
 """
-ReviewGuard AI — Pipeline Service and Report Approval Service
+FairTrace — Pipeline Service and Report Approval Service
 Pipeline executes as a FastAPI BackgroundTask.
 State stored in-memory (dict keyed by pipeline_run_id) for hackathon demo.
 """
@@ -35,6 +35,7 @@ from repositories import (
     review_input_repo,
 )
 from sqlalchemy import text
+from models.db.workflow import WorkflowExecution, WorkflowStatus
 
 logger = structlog.get_logger(__name__)
 
@@ -60,11 +61,27 @@ def initialize_pipeline(
     cycle = review_cycle_repo.get_by_id(db, UUID(str(cycle_id)))
     if not cycle:
         raise NotFoundError(f"Review cycle {cycle_id} not found.")
-    if cycle.status != ReviewCycleStatus.ACTIVE:
-        raise InvalidStateError("Pipeline can only be triggered for ACTIVE review cycles.")
-    if review_cycle_repo.has_active_pipeline(db, UUID(str(cycle_id))):
-        raise ConflictError("A pipeline is already running for this review cycle.")
-
+    if cycle.status not in (ReviewCycleStatus.ACTIVE, ReviewCycleStatus.PROCESSING):
+        raise InvalidStateError("Pipeline can only be triggered for ACTIVE or PROCESSING review cycles.")
+    # DB-level stale check
+    from sqlalchemy.exc import IntegrityError
+    from datetime import datetime, timezone, timedelta
+    
+    active_workflow = db.query(WorkflowExecution).filter(
+        WorkflowExecution.review_id == str(review.id),
+        WorkflowExecution.status == WorkflowStatus.RUNNING
+    ).first()
+    
+    if active_workflow:
+        # Check heartbeat
+        now = datetime.now(timezone.utc)
+        if active_workflow.last_heartbeat_at and now - active_workflow.last_heartbeat_at.replace(tzinfo=timezone.utc) > timedelta(minutes=5):
+            # It's stale! Mark as FAILED (or RECOVERABLE) so we can retry.
+            logger.warning("stale_pipeline_recovered", pipeline_run_id=active_workflow.execution_id)
+            active_workflow.status = WorkflowStatus.FAILED
+            db.commit()
+        else:
+            raise ConflictError("A pipeline is already running for this review cycle.")
     input_count = review_input_repo.count_for_cycle(db, UUID(str(cycle_id)))
     if input_count == 0:
         raise BusinessValidationError("At least one input must be submitted before triggering the pipeline.")
@@ -75,7 +92,7 @@ def initialize_pipeline(
     initial_state: ReviewGuardState = {
         "pipeline_run_id": pipeline_run_id,
         "state_version": 0,
-        "review_cycle_id": str(cycle.id),
+        "review_id": str(review.id),
         "employee_id": str(cycle.employee_id),
         "manager_id": str(cycle.manager_id),
         "triggered_by_id": str(actor.id),
@@ -141,12 +158,27 @@ def initialize_pipeline(
 
     # Update cycle status to PROCESSING
     review_cycle_repo.update_status(db, cycle, ReviewCycleStatus.PROCESSING)
-    db.commit()
+    # Create WorkflowExecution in DB
+    workflow = WorkflowExecution(
+        id=str(uuid.uuid4()),
+        execution_id=pipeline_run_id,
+        owner_id=actor.id,
+        organization_id=str(cycle.organization_id) if hasattr(cycle, 'organization_id') and cycle.organization_id else None,
+        review_id=review.id,
+        status=WorkflowStatus.RUNNING,
+        metadata_=initial_state
+    )
+    db.add(workflow)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise ConflictError("A pipeline is concurrently starting for this review cycle.")
 
     return pipeline_run_id
 
 
-def execute_pipeline(pipeline_run_id: str, review_cycle_id: str) -> None:
+def execute_pipeline(pipeline_run_id: str, review_id: str) -> None:
     """
     Executes the LangGraph pipeline.
     Called as FastAPI BackgroundTask — has its own DB session.
@@ -167,9 +199,20 @@ def execute_pipeline(pipeline_run_id: str, review_cycle_id: str) -> None:
         logger.info("pipeline_execution_done",
                     pipeline_run_id=pipeline_run_id, status=final_status)
 
+        # Update WorkflowExecution in DB
+        db = SessionLocal()
+        try:
+            workflow = db.query(WorkflowExecution).filter(WorkflowExecution.execution_id == pipeline_run_id).first()
+            if workflow:
+                workflow.status = WorkflowStatus.COMPLETED if final_status == "COMPLETED" else WorkflowStatus.FAILED
+                workflow.completed_at = datetime.now(timezone.utc)
+                db.commit()
+        finally:
+            db.close()
+
         # If FAILED, emit failure audit event
         if final_status == "FAILED":
-            _emit_failure_audit(pipeline_run_id, review_cycle_id, final_state)
+            _emit_failure_audit(pipeline_run_id, review_id, final_state)
 
     except Exception as exc:
         logger.exception("pipeline_execution_error", pipeline_run_id=pipeline_run_id, error=str(exc))
@@ -180,9 +223,20 @@ def execute_pipeline(pipeline_run_id: str, review_cycle_id: str) -> None:
                 "error": str(exc),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
+            
+        # Update WorkflowExecution in DB
+        db = SessionLocal()
+        try:
+            workflow = db.query(WorkflowExecution).filter(WorkflowExecution.execution_id == pipeline_run_id).first()
+            if workflow:
+                workflow.status = WorkflowStatus.FAILED
+                workflow.error_state = str(exc)
+                db.commit()
+        finally:
+            db.close()
 
 
-def _emit_failure_audit(pipeline_run_id: str, review_cycle_id: str, state: dict) -> None:
+def _emit_failure_audit(pipeline_run_id: str, review_id: str, state: dict) -> None:
     db = SessionLocal()
     try:
         from uuid import UUID
@@ -190,7 +244,7 @@ def _emit_failure_audit(pipeline_run_id: str, review_cycle_id: str, state: dict)
             "event_type": AuditEventType.PIPELINE_FAILED,
             "actor_id": None,
             "resource_type": "review_cycle",
-            "resource_id": UUID(review_cycle_id),
+            "resource_id": UUID(review_id),
             "event_payload": {
                 "pipeline_run_id": pipeline_run_id,
                 "error_state": state.get("error_state"),
@@ -212,7 +266,7 @@ def get_pipeline_status_response(pipeline_run_id: str) -> dict:
 
     return {
         "pipeline_run_id": pipeline_run_id,
-        "review_cycle_id": state["review_cycle_id"],
+        "review_id": state.get("review_id", ""),
         "pipeline_status": state["pipeline_status"],
         "current_agent": state["current_agent"],
         "agent_executions": state["agent_executions"],
@@ -237,6 +291,7 @@ def process_approval_action(
     reason: str,
     actor: CurrentUser,
     idempotency_key: str,
+    background_tasks = None,
 ) -> dict:
     """
     Processes APPROVE, REVISION_REQUESTED, or REJECT actions.
@@ -288,6 +343,11 @@ def process_approval_action(
                 "id": report_id,
             },
         )
+        # Update review cycle to COMPLETED
+        db.execute(
+            text("UPDATE review_cycles SET status = 'COMPLETED', updated_at = now() WHERE id = :cycle_id"),
+            {"cycle_id": cycle.id},
+        )
         event_type = AuditEventType.REPORT_APPROVED
 
         # Resume pipeline → finalization
@@ -305,11 +365,27 @@ def process_approval_action(
             ),
             {"id": report_id},
         )
+        # Update review cycle status
+        db.execute(
+            text(
+                "UPDATE review_cycles SET status = 'PROCESSING', updated_at = now() WHERE id = :cycle_id"
+            ),
+            {"cycle_id": cycle.id},
+        )
         event_type = AuditEventType.REPORT_REVISION_REQUESTED
+        db.commit() # ensure report status is saved before triggering pipeline
 
         if pipeline_run_id in _pipeline_store:
             _pipeline_store[pipeline_run_id]["approval_status"] = "REVISION_REQUESTED"
             _pipeline_store[pipeline_run_id]["approval_reason"] = reason
+
+        # Trigger AI Regeneration
+        if background_tasks:
+            try:
+                new_pipeline_run_id = initialize_pipeline(db, str(cycle.id), actor)
+                background_tasks.add_task(execute_pipeline, new_pipeline_run_id, cycle.id)
+            except Exception as e:
+                logger.error("pipeline_regeneration_failed", error=str(e))
 
     else:  # REJECT
         db.execute(
