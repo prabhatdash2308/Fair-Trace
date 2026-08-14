@@ -51,8 +51,8 @@ async def download_report_pdf(
 ):
     """
     Streams a real PDF of the specified report.
-    - ADMIN sees all reports.
-    - MANAGER can only export reports for cycles they own.
+    - ADMIN sees all reports in their organization.
+    - MANAGER can only export reports for reviews they manage.
     - EMPLOYEE can only export their own FINALIZED reports.
     """
     from models.db.report import Report
@@ -62,27 +62,34 @@ async def download_report_pdf(
     if not report:
         raise HTTPException(status_code=404, detail=f"Report {report_id} not found.")
 
-    cycle = report.review_cycle
+    # The report's organization is resolved through its review
+    review = report.review
+    if review is None:
+        raise HTTPException(status_code=404, detail=f"Report {report_id} not found.")
 
-    # Adversarial authorization bound
-    if cycle.organization_id != current_user.organization_id:
+    # Hard tenant isolation boundary — compare via the review's organization_id
+    report_org_id = review.organization_id
+    user_org_id = current_user.organization_id
+    if report_org_id is None or str(report_org_id) != str(user_org_id):
         raise HTTPException(status_code=403, detail="Cross-organization export is not allowed.")
 
+    _ADMIN_ROLES = (UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN, UserRole.HR_ADMIN)
     if current_user.role == UserRole.MANAGER:
-        if cycle.manager_id != current_user.id:
-            raise HTTPException(status_code=403, detail="You can only export reports for your own review cycles.")
-
-    if current_user.role == UserRole.EMPLOYEE:
-        if cycle.employee_id != current_user.id:
+        if str(review.manager_id) != str(current_user.id):
+            raise HTTPException(status_code=403, detail="You can only export reports for your own reviews.")
+    elif current_user.role == UserRole.EMPLOYEE:
+        if str(review.employee_id) != str(current_user.id):
             raise HTTPException(status_code=403, detail="You can only export your own reports.")
         if report.status != ReportStatus.FINALIZED:
             raise HTTPException(status_code=403, detail="Report is not yet finalized.")
+    elif current_user.role not in _ADMIN_ROLES:
+        raise HTTPException(status_code=403, detail="Access denied.")
 
     from app.export.providers.pdf_provider import PDFProvider
 
     report_data = _report_to_render_dict(report)
     metadata = {
-        "title": f"FairTrace Performance Review - Cycle {cycle.id}",
+        "title": f"FairTrace Performance Review - {review.title}",
         "report_id": str(report_id),
         "generated_at": datetime.datetime.utcnow().isoformat(),
     }
@@ -115,23 +122,31 @@ async def download_report_html(
     if not report:
         raise HTTPException(status_code=404, detail=f"Report {report_id} not found.")
 
-    cycle = report.review_cycle
+    # The report's organization is resolved through its review
+    review = report.review
+    if review is None:
+        raise HTTPException(status_code=404, detail=f"Report {report_id} not found.")
 
-    # Adversarial authorization bound
-    if cycle.organization_id != current_user.organization_id:
+    # Hard tenant isolation boundary
+    report_org_id = review.organization_id
+    user_org_id = current_user.organization_id
+    if report_org_id is None or str(report_org_id) != str(user_org_id):
         raise HTTPException(status_code=403, detail="Cross-organization export is not allowed.")
 
-    if current_user.role == UserRole.MANAGER:
-        if cycle.manager_id != current_user.id:
-            raise HTTPException(status_code=403, detail="You can only export reports for your own review cycles.")
-    elif current_user.role == UserRole.EMPLOYEE:
+    _ADMIN_ROLES = (UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN, UserRole.HR_ADMIN)
+    if current_user.role == UserRole.EMPLOYEE:
         raise HTTPException(status_code=403, detail="HTML export is not available for employees.")
+    elif current_user.role == UserRole.MANAGER:
+        if str(review.manager_id) != str(current_user.id):
+            raise HTTPException(status_code=403, detail="You can only export reports for your own reviews.")
+    elif current_user.role not in _ADMIN_ROLES:
+        raise HTTPException(status_code=403, detail="Access denied.")
 
     from app.export.providers.html_provider import HTMLProvider
 
     report_data = _report_to_render_dict(report)
     metadata = {
-        "title": f"FairTrace Performance Review - Cycle {cycle.id}",
+        "title": f"FairTrace Performance Review - {review.title}",
         "report_id": str(report_id),
         "generated_at": datetime.datetime.utcnow().isoformat(),
     }

@@ -74,7 +74,8 @@ def get_user(
     db: Session = Depends(get_db),
     actor: CurrentUser = Depends(get_current_user),
 ):
-    if actor.role != UserRole.ADMIN and actor.id != user_id:
+    _ADMIN_ROLES = (UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN, UserRole.HR_ADMIN)
+    if actor.role not in _ADMIN_ROLES and actor.id != user_id:
         raise ForbiddenError("You can only view your own profile.")
     return domain_services.get_user(db, user_id)
 
@@ -220,8 +221,14 @@ def list_reports(
     from models.db.report import Report
     from models.db.review import Review
 
-    stmt = select(Report).join(Review, Report.review_id == Review.id)
+    # All report queries are scoped to the authenticated user's organization (tenant isolation)
+    stmt = (
+        select(Report)
+        .join(Review, Report.review_id == Review.id)
+        .where(Review.organization_id == actor.organization_id)
+    )
 
+    _ADMIN_ROLES = (UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN, UserRole.HR_ADMIN)
     if actor.role == UserRole.EMPLOYEE:
         from models.enums import ReportStatus
         stmt = stmt.where(
@@ -230,7 +237,11 @@ def list_reports(
         )
     elif actor.role == UserRole.MANAGER:
         stmt = stmt.where(Review.manager_id == actor.id)
-    # ADMIN sees all
+    elif actor.role not in _ADMIN_ROLES:
+        # Unknown role — deny
+        from core.exceptions import ForbiddenError as FE
+        raise FE("Access denied.")
+    # ADMIN roles see all reports within their org (already scoped above)
 
     stmt = stmt.order_by(Report.generated_at.desc()).offset(skip).limit(limit)
     reports = db.scalars(stmt).all()

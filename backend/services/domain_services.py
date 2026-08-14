@@ -103,7 +103,8 @@ def get_review_cycle(db: Session, cycle_id: UUID, actor: CurrentUser) -> ReviewC
 def list_review_cycles(
     db: Session, actor: CurrentUser, skip: int = 0, limit: int = 20
 ) -> tuple[list[ReviewCycle], int]:
-    if actor.role == UserRole.ADMIN:
+    _ADMIN_ROLES = (UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN, UserRole.HR_ADMIN)
+    if actor.role in _ADMIN_ROLES:
         return review_cycle_repo.list_paginated(db, skip, limit)
     if actor.role == UserRole.MANAGER:
         return review_cycle_repo.list_for_manager(db, actor.id, skip, limit)
@@ -134,7 +135,8 @@ def update_cycle_status(
 
 
 def _assert_cycle_access(cycle: ReviewCycle, actor: CurrentUser) -> None:
-    if actor.role == UserRole.ADMIN:
+    _ADMIN_ROLES = (UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN, UserRole.HR_ADMIN)
+    if actor.role in _ADMIN_ROLES:
         return
     if actor.role == UserRole.MANAGER and cycle.manager_id == actor.id:
         return

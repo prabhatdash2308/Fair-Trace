@@ -61,7 +61,8 @@ def get_review(db: Session, review_id: UUID, actor: CurrentUser) -> Review:
 
 
 def list_reviews(db: Session, actor: CurrentUser, skip: int = 0, limit: int = 20) -> tuple[list[Review], int]:
-    if actor.role == UserRole.ADMIN:
+    _ADMIN_ROLES = (UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN, UserRole.HR_ADMIN)
+    if actor.role in _ADMIN_ROLES:
         return review_repo.list_paginated(db, skip, limit, organization_id=actor.organization_id)
     if actor.role == UserRole.MANAGER:
         return review_repo.list_for_manager(db, actor.id, skip, limit, organization_id=actor.organization_id)
